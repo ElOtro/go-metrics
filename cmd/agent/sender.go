@@ -18,20 +18,22 @@ func (app *application) postMetricsHandler() {
 		for k, v := range app.stats.Gauges {
 			url := fmt.Sprintf("http://%s:%d/%s/%s/%s/%.2f", cfg.collectorSrv.address, cfg.collectorSrv.port, "update", "gauge", k, v)
 
-			_, err := client.Post(url, "text/plain", nil)
+			resp, err := client.Post(url, "text/plain", nil)
 			if err != nil {
 				fmt.Println("Error")
 			}
+			resp.Body.Close()
 		}
 
 		// sending counter metrics
 		for k, v := range app.stats.Counters {
 			url := fmt.Sprintf("http://%s:%d/%s/%s/%s/%d", cfg.collectorSrv.address, cfg.collectorSrv.port, "update", "counter", k, v)
 
-			_, err := client.Post(url, "text/plain", nil)
+			resp, err := client.Post(url, "text/plain", nil)
 			if err != nil {
 				fmt.Println("Error")
 			}
+			resp.Body.Close()
 		}
 
 	}

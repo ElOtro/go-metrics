@@ -42,7 +42,7 @@ func main() {
 		client: http.Client{},
 	}
 
-	// run sendings metrics
+	// run sending metrics
 	app.postMetricsHandler()
 
 }
