@@ -34,6 +34,8 @@ func main() {
 	flag.StringVar(&cfg.collectorSrv.address, "address", "127.0.0.1", "Collector's server address")
 	flag.IntVar(&cfg.collectorSrv.port, "port", 8080, "Collector's server port")
 
+	flag.Parse()
+
 	// Declare an instance of the application struct, containing the config, stats structs
 	// and http.Clien
 	app := &application{
