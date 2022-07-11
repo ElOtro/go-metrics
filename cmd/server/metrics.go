@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -13,12 +12,14 @@ func (app *application) createMetricHandler(w http.ResponseWriter, r *http.Reque
 	v := chi.URLParam(r, "value")
 
 	if t == "" && n == "" && v == "" {
-		fmt.Println("is zero value")
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	err := app.rep.Set(t, n, v)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
