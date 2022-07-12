@@ -17,13 +17,13 @@ func (app *application) CreateMetricHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	if t != "gauge" && t != "counter" {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
 
 	err := app.rep.Set(t, n, v)
 	if err != nil {
-		w.WriteHeader(http.StatusNotImplemented)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
