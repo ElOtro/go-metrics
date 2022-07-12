@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 )
 
 type Item struct {
@@ -13,33 +14,47 @@ type Item struct {
 }
 
 type memstorage struct {
+	mutex   sync.RWMutex
 	Metrics map[string]Item
 }
 
 func New() *memstorage {
-	return &memstorage{make(map[string]Item)}
+	return &memstorage{sync.RWMutex{}, make(map[string]Item)}
 }
 
-func (m memstorage) GetAll() string {
+func (m *memstorage) GetAll() string {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
 	b, _ := json.Marshal(m.Metrics)
 	return fmt.Sprintf("memory: %s", string(b))
 }
 
-func (m memstorage) Get(t, n string) (string, error) {
+func (m *memstorage) Get(t, n string) (string, error) {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
 	metrics := m.Metrics
+
+	value := ""
 
 	for k, v := range metrics {
 		if k == n && v.Type == t {
-			return fmt.Sprintf("%v", v.Value), nil
-		} else {
-			return "", errors.New("not found")
+			value = fmt.Sprintf("%v", v.Value)
 		}
 	}
 
-	return "", nil
+	if value == "" {
+		return "", errors.New("not found")
+	}
+
+	return value, nil
 }
 
-func (m memstorage) Set(t, n, v string) error {
+func (m *memstorage) Set(t, n, v string) error {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
 	metrics := m.Metrics
 
 	if t == "gauge" {
