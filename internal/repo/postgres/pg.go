@@ -7,7 +7,11 @@ func New() *pgstorage {
 	return &pgstorage{}
 }
 
-func (m pgstorage) Get() string {
+func (m pgstorage) Get(t, n string) string {
+	return ""
+}
+
+func (m pgstorage) GetAll() string {
 	return ""
 }
 

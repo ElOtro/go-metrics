@@ -15,10 +15,14 @@ func (app *application) routes() *chi.Mux {
 	// r.Use(app.getQueryParams)
 
 	// RESTy routes for "articles" resource
-	r.Get("/", app.GetMetricHandler)
+	r.Get("/", app.GetAllMetricsHandler)
 
 	r.Route("/update", func(r chi.Router) {
 		r.Post("/{type}/{name}/{value}", app.CreateMetricHandler)
+	})
+
+	r.Route("/value", func(r chi.Router) {
+		r.Get("/{type}/{name}", app.GetMetricHandler)
 	})
 
 	// Return the router instance.

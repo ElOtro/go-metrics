@@ -32,6 +32,19 @@ func (app *application) CreateMetricHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *application) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
-	s := app.rep.Get()
+	t := chi.URLParam(r, "type")
+	n := chi.URLParam(r, "name")
+
+	if t == "" && n == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	s := app.rep.Get(t, n)
+	w.Write([]byte(s))
+}
+
+func (app *application) GetAllMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	s := app.rep.GetAll()
 	w.Write([]byte(s))
 }

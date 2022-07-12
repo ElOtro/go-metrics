@@ -20,9 +20,13 @@ func New() *memstorage {
 	return &memstorage{make(map[string]Item)}
 }
 
-func (m memstorage) Get() string {
+func (m memstorage) GetAll() string {
 	b, _ := json.Marshal(m.Metrics)
 	return fmt.Sprintf("memory: %s", string(b))
+}
+
+func (m memstorage) Get(t, n string) string {
+	return ""
 }
 
 func (m memstorage) Set(t, n, v string) error {
