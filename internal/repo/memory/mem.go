@@ -83,9 +83,6 @@ func (m *memstorage) Set(t, n, v string) error {
 			metrics[n] = Item{t, value}
 		}
 
-		v := metrics[n].Value.(int64)
-		metrics[n] = Item{t, v + value}
-
 		return nil
 	}
 
