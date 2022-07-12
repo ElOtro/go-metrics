@@ -40,7 +40,12 @@ func (app *application) GetMetricHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	s := app.rep.Get(t, n)
+	s, err := app.rep.Get(t, n)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(s))
 }
 

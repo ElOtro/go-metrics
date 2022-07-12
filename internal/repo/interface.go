@@ -17,7 +17,7 @@ var ErrInvalidOptions = errors.New("invalid options")
 
 type Getter interface {
 	GetAll() string
-	Get(t, n string) string
+	Get(t, n string) (string, error)
 	Set(t, n, v string) error
 }
 

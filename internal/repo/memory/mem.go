@@ -25,8 +25,18 @@ func (m memstorage) GetAll() string {
 	return fmt.Sprintf("memory: %s", string(b))
 }
 
-func (m memstorage) Get(t, n string) string {
-	return ""
+func (m memstorage) Get(t, n string) (string, error) {
+	metrics := m.Metrics
+
+	for k, v := range metrics {
+		if k == n && v.Type == t {
+			return fmt.Sprintf("%v", v.Value), nil
+		} else {
+			return "", errors.New("not found")
+		}
+	}
+
+	return "", nil
 }
 
 func (m memstorage) Set(t, n, v string) error {
