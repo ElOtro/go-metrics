@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ElOtro/go-metrics/cmd/handlers"
 	"github.com/ElOtro/go-metrics/internal/repo"
 )
 
@@ -15,12 +16,6 @@ type config struct {
 	address    string
 	port       int
 	enviroment string
-}
-
-// Define an application struct to hold the dependencies
-type application struct {
-	config config
-	rep    repo.Getter
 }
 
 func main() {
@@ -40,19 +35,15 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// Declare an instance of the application struct, containing the config struct and
-	// the logger.
-	app := &application{
-		config: cfg,
-		rep:    rep,
-	}
+	// Initialize a new Handlers struct
+	h := handlers.NewHandlers(rep)
 
 	// Declare a HTTP server with some sensible timeout settings, which listens on the
 	// port provided in the config struct and uses the servemux we created above as the
 	// handler.
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port),
-		Handler:      app.routes(),
+		Handler:      h.Routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
