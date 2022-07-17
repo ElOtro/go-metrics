@@ -14,7 +14,7 @@ var ErrEmptyOptions = errors.New("empty options")
 var ErrInvalidOptions = errors.New("invalid options")
 
 type Getter interface {
-	GetAll() string
+	GetAll() (map[string]float64, map[string]int64)
 	Get(t, n string) (string, error)
 	Set(t, n, v string) error
 }

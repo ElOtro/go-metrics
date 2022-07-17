@@ -1,46 +1,83 @@
 package handlers
 
 import (
-	"github.com/ElOtro/go-metrics/internal/repo"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 )
 
-type Repo interface {
-	repo.Getter
+func (h *Handlers) GetAllMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	gauges, counters := h.repo.GetAll()
+
+	g, _ := json.Marshal(gauges)
+	c, _ := json.Marshal(counters)
+
+	s := fmt.Sprintf("gauges: %s\r\ncounters: %s\r\n", string(g), string(c))
+
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte(s))
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
-// Create a Handlers struct which wraps all models.
-type Handlers struct {
-	repo Repo
+func (h *Handlers) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
+	t := chi.URLParam(r, "type")
+	n := chi.URLParam(r, "name")
+
+	if t == "" && n == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	s, err := h.repo.Get(t, n)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte(s))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 }
 
-// For ease of use, we also add a NewHandlers() method which
-// returns a Handlers struct
-func NewHandlers(repo repo.Getter) *Handlers {
-	return &Handlers{repo: repo}
-}
+func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
+	t := chi.URLParam(r, "type")
+	n := chi.URLParam(r, "name")
+	v := chi.URLParam(r, "value")
 
-func (h *Handlers) Routes() *chi.Mux {
-	r := chi.NewRouter()
-	// A good base middleware stack
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	// r.Use(app.getQueryParams)
+	if t == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	// RESTy routes for "articles" resource
-	r.Get("/", h.GetAllMetricsHandler)
+	if n == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	r.Route("/value", func(r chi.Router) {
-		r.Get("/{type}/{name}", h.GetMetricHandler)
-	})
+	if v == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	r.Route("/update", func(r chi.Router) {
-		r.Post("/{type}/{name}/{value}", h.CreateMetricHandler)
-	})
+	if t != "gauge" && t != "counter" {
+		w.WriteHeader(http.StatusNotImplemented)
+		return
+	}
 
-	return r
+	err := h.repo.Set(t, n, v)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 
 }

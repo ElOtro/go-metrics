@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -23,13 +22,11 @@ func New() *memStorage {
 	return m
 }
 
-func (m *memStorage) GetAll() string {
+func (m *memStorage) GetAll() (map[string]float64, map[string]int64) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
-	g, _ := json.Marshal(m.Gauges)
-	c, _ := json.Marshal(m.Counters)
-	return fmt.Sprintf("gauges: %s\r\ncounters: %s\r\n", string(g), string(c))
+	return m.Gauges, m.Counters
 }
 
 func (m *memStorage) Get(t, n string) (string, error) {
