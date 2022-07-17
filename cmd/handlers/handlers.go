@@ -21,7 +21,7 @@ func NewHandlers(repo repo.Getter) *Handlers {
 	return &Handlers{repo: repo}
 }
 
-func (a *Handlers) Routes() *chi.Mux {
+func (h *Handlers) Routes() *chi.Mux {
 	r := chi.NewRouter()
 	// A good base middleware stack
 	r.Use(middleware.RequestID)
@@ -31,14 +31,14 @@ func (a *Handlers) Routes() *chi.Mux {
 	// r.Use(app.getQueryParams)
 
 	// RESTy routes for "articles" resource
-	r.Get("/", a.GetAllMetricsHandler)
+	r.Get("/", h.GetAllMetricsHandler)
 
 	r.Route("/value", func(r chi.Router) {
-		r.Get("/{type}/{name}", a.GetMetricHandler)
+		r.Get("/{type}/{name}", h.GetMetricHandler)
 	})
 
 	r.Route("/update", func(r chi.Router) {
-		r.Post("/{type}/{name}/{value}", a.CreateMetricHandler)
+		r.Post("/{type}/{name}/{value}", h.CreateMetricHandler)
 	})
 
 	return r

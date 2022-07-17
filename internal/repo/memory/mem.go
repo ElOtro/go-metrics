@@ -41,7 +41,7 @@ func (m *memStorage) Get(t, n string) (string, error) {
 	if t == "gauge" {
 		v, ok := m.Gauges[n]
 		if ok {
-			value = fmt.Sprintf("%.2f", v)
+			value = fmt.Sprintf("%.3f", v)
 		}
 	}
 
