@@ -47,8 +47,8 @@ func runStats(s *Stats, duration int) {
 // Update metrics from Stats struct
 func updateStats(s *Stats, rtm *runtime.MemStats) {
 
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 
 	s.Gauges["Alloc"] = float64(rtm.Alloc)
 	s.Gauges["BuckHashSys"] = float64(rtm.BuckHashSys)
