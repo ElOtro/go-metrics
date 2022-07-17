@@ -8,39 +8,47 @@ import (
 	"sync"
 )
 
-type Item struct {
-	Type  string
-	Value interface{}
+type memStorage struct {
+	mutex    sync.RWMutex
+	Gauges   map[string]float64
+	Counters map[string]int64
 }
 
-type memstorage struct {
-	mutex   sync.RWMutex
-	Metrics map[string]Item
+func New() *memStorage {
+	m := &memStorage{
+		mutex:    sync.RWMutex{},
+		Gauges:   make(map[string]float64),
+		Counters: make(map[string]int64),
+	}
+	return m
 }
 
-func New() *memstorage {
-	return &memstorage{sync.RWMutex{}, make(map[string]Item)}
-}
-
-func (m *memstorage) GetAll() string {
+func (m *memStorage) GetAll() string {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
-	b, _ := json.Marshal(m.Metrics)
-	return fmt.Sprintf("memory: %s", string(b))
+	g, _ := json.Marshal(m.Gauges)
+	c, _ := json.Marshal(m.Counters)
+	return fmt.Sprintf("gauges: %s\r\ncounters: %s\r\n", string(g), string(c))
 }
 
-func (m *memstorage) Get(t, n string) (string, error) {
+func (m *memStorage) Get(t, n string) (string, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
-
-	metrics := m.Metrics
 
 	value := ""
 
-	for k, v := range metrics {
-		if k == n && v.Type == t {
-			value = fmt.Sprintf("%v", v.Value)
+	if t == "gauge" {
+		v, ok := m.Gauges[n]
+		if ok {
+			value = fmt.Sprintf("%.2f", v)
+		}
+	}
+
+	if t == "counter" {
+		v, ok := m.Counters[n]
+		if ok {
+			value = fmt.Sprintf("%d", v)
 		}
 	}
 
@@ -51,11 +59,9 @@ func (m *memstorage) Get(t, n string) (string, error) {
 	return value, nil
 }
 
-func (m *memstorage) Set(t, n, v string) error {
+func (m *memStorage) Set(t, n, v string) error {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
-
-	metrics := m.Metrics
 
 	if t == "gauge" {
 		value, err := strconv.ParseFloat(v, 64)
@@ -63,7 +69,7 @@ func (m *memstorage) Set(t, n, v string) error {
 			return err
 		}
 
-		metrics[n] = Item{t, value}
+		m.Gauges[n] = value
 
 		return nil
 	}
@@ -74,13 +80,12 @@ func (m *memstorage) Set(t, n, v string) error {
 			return err
 		}
 
-		_, ok := metrics[n]
+		_, ok := m.Counters[n]
 
 		if ok {
-			v := metrics[n].Value.(int64)
-			metrics[n] = Item{t, v + value}
+			m.Counters[n] = m.Counters[n] + value
 		} else {
-			metrics[n] = Item{t, value}
+			m.Counters[n] = value
 		}
 
 		return nil

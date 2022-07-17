@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -10,7 +11,33 @@ func (h *Handlers) GetAllMetricsHandler(w http.ResponseWriter, r *http.Request) 
 	s := h.repo.GetAll()
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(s))
+	_, err := w.Write([]byte(s))
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func (h *Handlers) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
+	t := chi.URLParam(r, "type")
+	n := chi.URLParam(r, "name")
+
+	if t == "" && n == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	s, err := h.repo.Get(t, n)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte(s))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 }
 
 func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
@@ -36,22 +63,4 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-}
-
-func (h *Handlers) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
-	t := chi.URLParam(r, "type")
-	n := chi.URLParam(r, "name")
-
-	if t == "" && n == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	s, err := h.repo.Get(t, n)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(s))
 }

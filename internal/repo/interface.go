@@ -3,8 +3,6 @@ package repo
 import (
 	"errors"
 
-	"github.com/ElOtro/go-metrics/internal/repo/postgres"
-
 	"github.com/ElOtro/go-metrics/internal/repo/memory"
 )
 
@@ -29,8 +27,6 @@ func NewGetter(opts *Options) (Getter, error) {
 	switch opts.Environment {
 	case "debug":
 		return memory.New(), nil
-	case "release":
-		return postgres.New(), nil
 	default:
 		return nil, errors.New("invalid settings")
 	}

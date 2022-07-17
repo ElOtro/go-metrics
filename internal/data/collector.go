@@ -1,8 +1,6 @@
 package data
 
 import (
-	"encoding/json"
-	"fmt"
 	"math/rand"
 	"runtime"
 	"sync"
@@ -41,16 +39,16 @@ func runStats(s *Stats, duration int) {
 		<-time.After(interval)
 
 		runtime.ReadMemStats(&rtm)
-		UpdateStats(s, &rtm)
+		updateStats(s, &rtm)
 	}
 
 }
 
 // Update metrics from Stats struct
-func UpdateStats(s *Stats, rtm *runtime.MemStats) {
+func updateStats(s *Stats, rtm *runtime.MemStats) {
 
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
 	s.Gauges["Alloc"] = float64(rtm.Alloc)
 	s.Gauges["BuckHashSys"] = float64(rtm.BuckHashSys)
@@ -87,13 +85,4 @@ func UpdateStats(s *Stats, rtm *runtime.MemStats) {
 	s.Gauges["RandomValue"] = rand.Float64()
 
 	s.Counters["PollCount"] = s.Counters["PollCount"] + 1
-}
-
-func (s *Stats) Get() {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-
-	j, _ := json.Marshal(s)
-
-	fmt.Println(string(j))
 }

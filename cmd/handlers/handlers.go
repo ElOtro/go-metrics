@@ -33,12 +33,12 @@ func (a *Handlers) Routes() *chi.Mux {
 	// RESTy routes for "articles" resource
 	r.Get("/", a.GetAllMetricsHandler)
 
-	r.Route("/update", func(r chi.Router) {
-		r.Post("/{type}/{name}/{value}", a.CreateMetricHandler)
-	})
-
 	r.Route("/value", func(r chi.Router) {
 		r.Get("/{type}/{name}", a.GetMetricHandler)
+	})
+
+	r.Route("/update", func(r chi.Router) {
+		r.Post("/{type}/{name}/{value}", a.CreateMetricHandler)
 	})
 
 	return r
