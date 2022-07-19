@@ -26,23 +26,23 @@ func TestHandlers_GetAllMetricsHandler(t *testing.T) {
 		want   want
 	}{
 		// определяем все тесты
-		// {
-		// 	name: "Test 1",
-		// 	fields: fields{
-		// 		r:    chi.NewRouter(),
-		// 		repo: &mocks.Repo{},
-		// 	},
-		// 	want: want{
-		// 		statusCode:      http.StatusOK,
-		// 		wantCallService: true,
-		// 	},
-		// },
+		{
+			name: "Test 1",
+			fields: fields{
+				r:    chi.NewRouter(),
+				repo: &mocks.Repo{},
+			},
+			want: want{
+				statusCode:      http.StatusOK,
+				wantCallService: true,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			//  если в процессе теста вызываается сервис мокаем
 			if tt.want.wantCallService {
-				tt.fields.repo.On("GetAll")
+				tt.fields.repo.On("GetAll").Return(make(map[string]float64), make(map[string]int64))
 			}
 
 			h := &Handlers{
