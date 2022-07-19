@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ElOtro/go-metrics/cmd/handlers"
+	"github.com/ElOtro/go-metrics/internal/handlers"
 	"github.com/ElOtro/go-metrics/internal/repo"
 )
 

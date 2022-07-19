@@ -4,7 +4,7 @@ import (
 	"flag"
 	"net/http"
 
-	"github.com/ElOtro/go-metrics/internal/data"
+	data "github.com/ElOtro/go-metrics/internal/collector"
 )
 
 // Define a config struct to hold all the configuration settings for our application.
