@@ -5,11 +5,10 @@ import (
 	"time"
 )
 
-// Run senging metrics for each type (gauge, counter)
+// Run sending metrics for each type (gauge, counter)
 func (app *application) postMetricsHandler() {
 	cfg := app.config
-	client := app.client
-
+	var client = app.client
 	var interval = time.Duration(app.config.reportInterval) * time.Second
 	for {
 		<-time.After(interval)

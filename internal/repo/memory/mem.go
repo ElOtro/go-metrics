@@ -57,8 +57,8 @@ func (m *memStorage) Get(t, n string) (string, error) {
 }
 
 func (m *memStorage) Set(t, n, v string) error {
-	m.mutex.RLock()
-	defer m.mutex.RUnlock()
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 
 	if t == "gauge" {
 		value, err := strconv.ParseFloat(v, 64)

@@ -53,7 +53,7 @@ func updateStats(s *Stats, rtm *runtime.MemStats) {
 	s.Gauges["Alloc"] = float64(rtm.Alloc)
 	s.Gauges["BuckHashSys"] = float64(rtm.BuckHashSys)
 	s.Gauges["Frees"] = float64(rtm.Frees)
-	s.Gauges["GCCPUFraction"] = float64(rtm.GCCPUFraction)
+	s.Gauges["GCCPUFraction"] = rtm.GCCPUFraction
 	s.Gauges["GCSys"] = float64(rtm.GCSys)
 
 	s.Gauges["HeapAlloc"] = float64(rtm.HeapAlloc)
