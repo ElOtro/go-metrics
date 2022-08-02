@@ -92,7 +92,7 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 	err := dec.Decode(&input)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -100,7 +100,7 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 
 	m, err := h.repo.GetMetricsByID(input.ID, input.MType)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -109,7 +109,7 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 	// преобразуем m в JSON-формат
 	js, err := json.Marshal(m)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -129,7 +129,7 @@ func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Reque
 	err := dec.Decode(&input)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -137,7 +137,7 @@ func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Reque
 
 	err = h.repo.SetMetrics(input)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		return
