@@ -31,7 +31,7 @@ func main() {
 	// Read the value of the port and env command-line flags into the config struct.
 	flag.IntVar(&cfg.pollInterval, "pollInterval", 2, "pollInterval duration in seconds")
 	flag.IntVar(&cfg.reportInterval, "reportInterval", 10, "reportInterval duration in seconds")
-	flag.StringVar(&cfg.collectorSrv.address, "address", "localhost", "Collector's server address")
+	flag.StringVar(&cfg.collectorSrv.address, "address", "127.0.0.1", "Collector's server address")
 	flag.IntVar(&cfg.collectorSrv.port, "port", 8080, "Collector's server port")
 
 	flag.Parse()
