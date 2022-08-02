@@ -69,6 +69,7 @@ func updateStats(s *Stats, rtm *runtime.MemStats) {
 	s.Gauges["MCacheInuse"] = float64(rtm.MCacheInuse)
 	s.Gauges["MCacheSys"] = float64(rtm.MCacheSys)
 	s.Gauges["MSpanInuse"] = float64(rtm.MSpanInuse)
+	s.Gauges["MSpanSys"] = float64(rtm.MSpanSys)
 	s.Gauges["Mallocs"] = float64(rtm.Mallocs)
 	s.Gauges["NextGC"] = float64(rtm.NextGC)
 	s.Gauges["NumForcedGC"] = float64(rtm.NumForcedGC)
