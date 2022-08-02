@@ -36,9 +36,11 @@ func sendGauges(client http.Client, gauges map[string]float64, address string, p
 
 		resp, err := client.Post(url, "text/plain", nil)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+		} else {
+			resp.Body.Close()
 		}
-		resp.Body.Close()
+
 	}
 
 }
@@ -49,9 +51,10 @@ func sendCounters(client http.Client, counters map[string]int64, address string,
 
 		resp, err := client.Post(url, "text/plain", nil)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+		} else {
+			resp.Body.Close()
 		}
-		resp.Body.Close()
 	}
 
 }
