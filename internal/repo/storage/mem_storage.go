@@ -144,15 +144,12 @@ func (m *memStorage) SetMetrics(ms Metrics) error {
 	}
 
 	if ms.MType == "counter" {
-		if ms.Delta == nil {
-			return errors.New("invalid params")
-		}
-		_, ok := m.Counters[ms.ID]
+		value, ok := m.Counters[ms.ID]
 
 		if ok {
-			m.Counters[ms.ID] = m.Counters[ms.ID] + *ms.Delta
+			m.Counters[ms.ID] = value + 1
 		} else {
-			m.Counters[ms.ID] = *ms.Delta
+			m.Counters[ms.ID] = 1
 		}
 
 		return nil
