@@ -116,7 +116,7 @@ func (m *memStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 		v, ok := m.Counters[id]
 		if ok {
 			input.ID = id
-			input.MType = "gauge"
+			input.MType = "counter"
 			input.Delta = &v
 		}
 	}
