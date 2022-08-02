@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,29 +8,27 @@ import (
 
 	"github.com/ElOtro/go-metrics/internal/handlers"
 	"github.com/ElOtro/go-metrics/internal/repo"
+	"github.com/caarlos0/env/v6"
 )
 
 // Define a config struct to hold all the configuration settings for our application.
-type config struct {
-	address    string
-	port       int
-	enviroment string
+type Config struct {
+	Address    string `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
+	Enviroment string `env:"ENVIROMENT" envDefault:"debug"`
 }
 
 func main() {
 	// Declare an instance of the config struct.
-	var cfg config
-
-	// Read the value of the port and env command-line flags into the config struct.
-	flag.StringVar(&cfg.address, "address", "127.0.0.1", "API server address")
-	flag.IntVar(&cfg.port, "port", 8080, "API server port")
-	flag.StringVar(&cfg.enviroment, "enviroment", "debug", "API server mode")
-
-	flag.Parse()
-
-	rep, err := repo.NewMemStorage(&repo.Options{Environment: cfg.enviroment})
+	var cfg Config
+	err := env.Parse(&cfg)
 	if err != nil {
-		//  в мейн паниковать можно
+		log.Fatal(err)
+	}
+
+	log.Println(cfg)
+
+	rep, err := repo.NewMemStorage(&repo.Options{Environment: cfg.Enviroment})
+	if err != nil {
 		log.Fatalln(err)
 	}
 
@@ -42,7 +39,7 @@ func main() {
 	// port provided in the config struct and uses the servemux we created above as the
 	// handler.
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.port),
+		Addr:         fmt.Sprintf("%s", cfg.Address),
 		Handler:      h.Routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,

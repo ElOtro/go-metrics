@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -10,26 +11,26 @@ import (
 func (app *application) postMetrics() {
 	cfg := app.config
 	var client = app.client
-	var interval = time.Duration(app.config.reportInterval) * time.Second
+	var interval = time.Duration(app.config.ReportInterval) * time.Second
 	for {
 		<-time.After(interval)
 
 		// sending gauge metrics
-		sendGauges(client, app.stats.Gauges, cfg.collectorSrv.address, cfg.collectorSrv.port)
+		sendGauges(client, app.stats.Gauges, cfg.Address)
 		// sending counter metrics
-		sendCounters(client, app.stats.Counters, cfg.collectorSrv.address, cfg.collectorSrv.port)
+		sendCounters(client, app.stats.Counters, cfg.Address)
 
 	}
 
 }
 
-func sendGauges(client http.Client, gauges map[string]float64, address string, port int) {
+func sendGauges(client http.Client, gauges map[string]float64, address string) {
 	for k, v := range gauges {
-		url := fmt.Sprintf("http://%s:%d/%s/%s/%s/%.2f", address, port, "update", "gauge", k, v)
+		url := fmt.Sprintf("http://%s/%s/%s/%s/%.2f", address, "update", "gauge", k, v)
 
 		resp, err := client.Post(url, "text/plain", nil)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		} else {
 			resp.Body.Close()
 		}
@@ -38,13 +39,13 @@ func sendGauges(client http.Client, gauges map[string]float64, address string, p
 
 }
 
-func sendCounters(client http.Client, counters map[string]int64, address string, port int) {
+func sendCounters(client http.Client, counters map[string]int64, address string) {
 	for k, v := range counters {
-		url := fmt.Sprintf("http://%s:%d/%s/%s/%s/%d", address, port, "update", "counter", k, v)
+		url := fmt.Sprintf("http://%s/%s/%s/%s/%d", address, "update", "counter", k, v)
 
 		resp, err := client.Post(url, "text/plain", nil)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		} else {
 			resp.Body.Close()
 		}

@@ -1,46 +1,38 @@
 package main
 
 import (
-	"flag"
+	"log"
 	"net/http"
 
 	data "github.com/ElOtro/go-metrics/internal/collector"
+	"github.com/caarlos0/env/v6"
 )
 
-// Define a config struct to hold all the configuration settings for our application.
-type config struct {
-	pollInterval   int
-	reportInterval int
-	collectorSrv   struct {
-		address string
-		port    int
-	}
+type Config struct {
+	Address        string `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
+	ReportInterval int    `env:"REPORT_INTERVAL" envDefault:"10"`
+	PollInterval   int    `env:"POLL_INTERVAL" envDefault:"2"`
 }
 
 // Define an application struct to hold the dependencies
 type application struct {
-	config config
+	config Config
 	stats  *data.Stats
 	client http.Client
 }
 
 func main() {
-	// Declare an instance of the config struct.
-	var cfg config
+	var cfg Config
+	err := env.Parse(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Read the value of the port and env command-line flags into the config struct.
-	flag.IntVar(&cfg.pollInterval, "pollInterval", 2, "pollInterval duration in seconds")
-	flag.IntVar(&cfg.reportInterval, "reportInterval", 10, "reportInterval duration in seconds")
-	flag.StringVar(&cfg.collectorSrv.address, "address", "127.0.0.1", "Collector's server address")
-	flag.IntVar(&cfg.collectorSrv.port, "port", 8080, "Collector's server port")
+	log.Println(cfg)
 
-	flag.Parse()
-
-	// Declare an instance of the application struct, containing the config, stats structs
-	// and http.Clien
 	app := &application{
 		config: cfg,
-		stats:  data.NewStats(cfg.pollInterval),
+		stats:  data.NewStats(cfg.PollInterval),
 		client: http.Client{},
 	}
 
