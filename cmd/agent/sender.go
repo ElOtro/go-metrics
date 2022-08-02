@@ -26,10 +26,10 @@ func (app *application) postMetrics() {
 
 		// sending gauge metrics
 		sendGauges(client, app.stats.Gauges, cfg.collectorSrv.address, cfg.collectorSrv.port)
-		sendJSONGauges(client, app.stats.Gauges, cfg.collectorSrv.address, cfg.collectorSrv.port)
+		// sendJSONGauges(client, app.stats.Gauges, cfg.collectorSrv.address, cfg.collectorSrv.port)
 		// sending counter metrics
 		sendCounters(client, app.stats.Counters, cfg.collectorSrv.address, cfg.collectorSrv.port)
-		sendJSONCounters(client, app.stats.Counters, cfg.collectorSrv.address, cfg.collectorSrv.port)
+		// sendJSONCounters(client, app.stats.Counters, cfg.collectorSrv.address, cfg.collectorSrv.port)
 
 	}
 
