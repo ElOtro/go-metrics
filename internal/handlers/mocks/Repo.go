@@ -58,13 +58,13 @@ func (_m *Repo) GetAll() (map[string]float64, map[string]int64) {
 	return r0, r1
 }
 
-// GetMetricsByID provides a mock function with given fields: id
-func (_m *Repo) GetMetricsByID(id string) (*storage.Metrics, error) {
-	ret := _m.Called(id)
+// GetMetricsByID provides a mock function with given fields: id, mtype
+func (_m *Repo) GetMetricsByID(id string, mtype string) (*storage.Metrics, error) {
+	ret := _m.Called(id, mtype)
 
 	var r0 *storage.Metrics
-	if rf, ok := ret.Get(0).(func(string) *storage.Metrics); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(string, string) *storage.Metrics); ok {
+		r0 = rf(id, mtype)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*storage.Metrics)
@@ -72,8 +72,8 @@ func (_m *Repo) GetMetricsByID(id string) (*storage.Metrics, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(id, mtype)
 	} else {
 		r1 = ret.Error(1)
 	}

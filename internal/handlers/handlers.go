@@ -86,9 +86,17 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 //  New API
 func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 
-	v := chi.URLParam(r, "value")
+	var input storage.Metrics
 
-	m, err := h.repo.GetMetricsByID(v)
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&input)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	m, err := h.repo.GetMetricsByID(input.ID, input.MType)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

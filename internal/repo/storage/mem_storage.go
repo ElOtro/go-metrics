@@ -99,9 +99,33 @@ func (m *memStorage) Set(t, n, v string) error {
 }
 
 // New JSON API
-func (m *memStorage) GetMetricsByID(id string) (*Metrics, error) {
+func (m *memStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 
-	return nil, nil
+	var input Metrics
+
+	if mtype == "gauge" {
+		v, ok := m.Gauges[id]
+		if ok {
+			input.ID = id
+			input.MType = "gauge"
+			input.Value = &v
+		}
+	}
+
+	if mtype == "counter" {
+		v, ok := m.Counters[id]
+		if ok {
+			input.ID = id
+			input.MType = "gauge"
+			input.Delta = &v
+		}
+	}
+
+	if input.ID == "" {
+		return nil, errors.New("not found")
+	}
+
+	return &input, nil
 }
 
 func (m *memStorage) SetMetrics(ms Metrics) error {
