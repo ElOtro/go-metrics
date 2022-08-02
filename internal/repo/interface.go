@@ -18,7 +18,7 @@ type Getter interface {
 	Get(t, n string) (string, error)
 	Set(t, n, v string) error
 	GetMetricsByID(id, mtype string) (*memStorage.Metrics, error)
-	SetMetrics(memStorage.Metrics) error
+	SetMetrics(*memStorage.Metrics) error
 }
 
 func NewMemStorage(opts *Options) (Getter, error) {

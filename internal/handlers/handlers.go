@@ -123,7 +123,7 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 
 func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 
-	var input storage.Metrics
+	var input *storage.Metrics
 
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&input)

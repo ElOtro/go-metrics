@@ -128,8 +128,8 @@ func (m *memStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 	return &input, nil
 }
 
-func (m *memStorage) SetMetrics(ms Metrics) error {
-	// fmt.Printf("%+v", ms)
+func (m *memStorage) SetMetrics(ms *Metrics) error {
+	fmt.Printf("%+v", ms)
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
