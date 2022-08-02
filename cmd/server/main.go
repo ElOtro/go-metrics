@@ -23,7 +23,7 @@ func main() {
 	var cfg config
 
 	// Read the value of the port and env command-line flags into the config struct.
-	flag.StringVar(&cfg.address, "address", "127.0.0.1", "API server address")
+	flag.StringVar(&cfg.address, "address", "localhost", "API server address")
 	flag.IntVar(&cfg.port, "port", 8080, "API server port")
 	flag.StringVar(&cfg.enviroment, "enviroment", "debug", "API server mode")
 
