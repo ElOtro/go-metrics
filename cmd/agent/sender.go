@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"time"
 )
@@ -21,20 +20,16 @@ type Metrics struct {
 func (app *application) postMetrics() {
 	cfg := app.config
 	var client = app.client
-	srv := fmt.Sprintf("%s:%d", app.config.collectorSrv.address, app.config.collectorSrv.port)
 	var interval = time.Duration(app.config.reportInterval) * time.Second
 	for {
 		<-time.After(interval)
 
-		_, err := net.DialTimeout("tcp", srv, 1*time.Second)
-		if err == nil {
-			// sending gauge metrics
-			sendGauges(client, app.stats.Gauges, cfg.collectorSrv.address, cfg.collectorSrv.port)
-			sendJSONGauges(client, app.stats.Gauges, cfg.collectorSrv.address, cfg.collectorSrv.port)
-			// sending counter metrics
-			sendCounters(client, app.stats.Counters, cfg.collectorSrv.address, cfg.collectorSrv.port)
-			sendJSONCounters(client, app.stats.Counters, cfg.collectorSrv.address, cfg.collectorSrv.port)
-		}
+		// sending gauge metrics
+		sendGauges(client, app.stats.Gauges, cfg.collectorSrv.address, cfg.collectorSrv.port)
+		sendJSONGauges(client, app.stats.Gauges, cfg.collectorSrv.address, cfg.collectorSrv.port)
+		// sending counter metrics
+		sendCounters(client, app.stats.Counters, cfg.collectorSrv.address, cfg.collectorSrv.port)
+		sendJSONCounters(client, app.stats.Counters, cfg.collectorSrv.address, cfg.collectorSrv.port)
 
 	}
 
