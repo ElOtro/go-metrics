@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ElOtro/go-metrics/internal/repo/storage"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -75,6 +76,51 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 	err := h.repo.Set(t, n, v)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+}
+
+//  New API
+func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
+
+	v := chi.URLParam(r, "value")
+
+	m, err := h.repo.GetMetricsByID(v)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	// преобразуем m в JSON-формат
+	js, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(js)
+
+}
+
+func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
+
+	var input storage.Metrics
+
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&input)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = h.repo.SetMetrics(input)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

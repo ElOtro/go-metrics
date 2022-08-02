@@ -45,6 +45,6 @@ func main() {
 	}
 
 	// run sending metrics
-	app.postMetricsHandler()
+	app.postMetrics()
 
 }

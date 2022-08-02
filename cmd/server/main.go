@@ -29,7 +29,7 @@ func main() {
 
 	flag.Parse()
 
-	rep, err := repo.NewGetter(&repo.Options{Environment: cfg.enviroment})
+	rep, err := repo.NewMemStorage(&repo.Options{Environment: cfg.enviroment})
 	if err != nil {
 		//  в мейн паниковать можно
 		log.Fatalln(err)

@@ -37,9 +37,10 @@ func (h *Handlers) Routes() *chi.Mux {
 		r.Get("/{type}/{name}", h.GetMetricHandler)
 	})
 
-	r.Route("/update", func(r chi.Router) {
-		r.Post("/{type}/{name}/{value}", h.CreateMetricHandler)
-	})
+	r.Post("/update/{type}/{name}/{value}", h.CreateMetricHandler)
+
+	r.Post("/update/", h.CreateMetricsJSONHandler)
+	r.Post("/{value}/", h.GetMetricsJSONHandler)
 
 	return r
 
