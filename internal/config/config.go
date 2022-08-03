@@ -1,7 +1,9 @@
 package config
 
+import "time"
+
 type Config struct {
-	Address        string `env:"ADDRESS,required" envDefault:"127.0.0.1:8080"`
-	ReportInterval int    `env:"REPORT_INTERVAL,required" envDefault:"10"`
-	PollInterval   int    `env:"POLL_INTERVAL,required" envDefault:"2"`
+	Address        string        `env:"ADDRESS,required" envDefault:"127.0.0.1:8080"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL" envDefault:"10s"`
+	PollInterval   time.Duration `env:"POLL_INTERVAL" envDefault:"2s"`
 }

@@ -11,7 +11,7 @@ import (
 func (app *application) postMetrics() {
 	cfg := app.config
 	var client = app.client
-	var interval = time.Duration(app.config.ReportInterval) * time.Second
+	var interval = app.config.ReportInterval
 	for {
 		<-time.After(interval)
 
