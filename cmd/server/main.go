@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -39,7 +38,7 @@ func main() {
 	// port provided in the config struct and uses the servemux we created above as the
 	// handler.
 	srv := &http.Server{
-		Addr:         fmt.Sprintf("%s", cfg.Address),
+		Addr:         cfg.Address,
 		Handler:      h.Routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
