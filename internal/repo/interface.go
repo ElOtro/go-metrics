@@ -21,16 +21,6 @@ type Getter interface {
 	SetMetrics(*memStorage.Metrics) error
 }
 
-func NewMemStorage(opts *Options) (Getter, error) {
-	if opts == nil {
-		return nil, ErrEmptyOptions
-	}
-
-	switch opts.Environment {
-	case "debug":
-		return memStorage.New(), nil
-	default:
-		return nil, errors.New("invalid settings")
-	}
-
+func NewMemStorage() (Getter, error) {
+	return memStorage.New(), nil
 }
