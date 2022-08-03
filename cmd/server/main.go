@@ -21,7 +21,7 @@ func main() {
 
 	log.Println(cfg)
 
-	rep, err := repo.NewMemStorage(&repo.Options{Environment: cfg.Enviroment})
+	rep, err := repo.NewMemStorage(&repo.Options{Environment: cfg.Environment})
 	if err != nil {
 		log.Fatalln(err)
 	}
