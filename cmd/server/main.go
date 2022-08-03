@@ -5,20 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ElOtro/go-metrics/internal/config"
 	"github.com/ElOtro/go-metrics/internal/handlers"
 	"github.com/ElOtro/go-metrics/internal/repo"
 	"github.com/caarlos0/env/v6"
 )
 
-// Define a config struct to hold all the configuration settings for our application.
-type Config struct {
-	Address    string `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
-	Enviroment string `env:"ENVIROMENT" envDefault:"debug"`
-}
-
 func main() {
 	// Declare an instance of the config struct.
-	var cfg Config
+	var cfg config.Config
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatal(err)
