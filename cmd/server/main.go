@@ -8,6 +8,7 @@ import (
 	"github.com/ElOtro/go-metrics/internal/config"
 	"github.com/ElOtro/go-metrics/internal/handlers"
 	"github.com/ElOtro/go-metrics/internal/repo"
+	"github.com/ElOtro/go-metrics/internal/service"
 	"github.com/caarlos0/env/v6"
 )
 
@@ -19,8 +20,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Print cfg on start
 	log.Println(cfg)
 
+	// Initialize a new Storage struct
 	rep, err := repo.NewMemStorage()
 	if err != nil {
 		log.Fatalln(err)
@@ -28,6 +31,13 @@ func main() {
 
 	// Initialize a new Handlers struct
 	h := handlers.NewHandlers(rep)
+
+	producer, err := service.NewProducer(cfg.StoreInterval, cfg.StoreFile, rep)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	// Run producer to write JSON metrics
+	go producer.Run()
 
 	// Declare a HTTP server with some sensible timeout settings, which listens on the
 	// port provided in the config struct and uses the servemux we created above as the

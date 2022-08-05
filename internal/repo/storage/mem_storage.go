@@ -99,7 +99,38 @@ func (m *memStorage) Set(t, n, v string) error {
 }
 
 // New JSON API
+func (m *memStorage) GetMetrics() []Metrics {
+	metrics := []Metrics{}
+
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
+	for k, v := range m.Counters {
+		var metric Metrics
+
+		metric.ID = k
+		metric.MType = "counter"
+		metric.Delta = &v
+
+		metrics = append(metrics, metric)
+	}
+
+	for k, v := range m.Gauges {
+		var metric Metrics
+
+		metric.ID = k
+		metric.MType = "gauge"
+		metric.Value = &v
+
+		metrics = append(metrics, metric)
+	}
+
+	return metrics
+}
+
 func (m *memStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
 
 	var input Metrics
 
@@ -129,7 +160,7 @@ func (m *memStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 }
 
 func (m *memStorage) SetMetrics(ms *Metrics) error {
-	fmt.Printf("%+v", ms)
+	// fmt.Printf("%+v", ms)
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
