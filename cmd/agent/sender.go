@@ -9,9 +9,9 @@ import (
 
 // Run sending metrics for each type (gauge, counter)
 func (app *application) postMetrics() {
-	cfg := app.config
+	cfg := *app.config
 	var client = app.client
-	var interval = app.config.ReportInterval
+	var interval = cfg.ReportInterval
 	for {
 		<-time.After(interval)
 

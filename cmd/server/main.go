@@ -9,15 +9,13 @@ import (
 	"github.com/ElOtro/go-metrics/internal/handlers"
 	"github.com/ElOtro/go-metrics/internal/repo"
 	"github.com/ElOtro/go-metrics/internal/service"
-	"github.com/caarlos0/env/v6"
 )
 
 func main() {
 	// Declare an instance of the config struct.
-	var cfg config.Config
-	err := env.Parse(&cfg)
+	cfg, err := config.NewConfig()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 
 	// Print cfg on start
