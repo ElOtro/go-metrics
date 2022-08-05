@@ -18,7 +18,7 @@ func (h *Handlers) GetAllMetricsHandler(w http.ResponseWriter, r *http.Request) 
 
 	s := fmt.Sprintf("gauges: %s\r\ncounters: %s\r\n", string(g), string(c))
 
-	w.Header().Set("Content-Type", "html/text")
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte(s))
 	if err != nil {
