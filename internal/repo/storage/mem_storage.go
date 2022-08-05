@@ -1,8 +1,10 @@
 package storage
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"strconv"
 	"sync"
 )
@@ -99,35 +101,6 @@ func (m *memStorage) Set(t, n, v string) error {
 }
 
 // New JSON API
-func (m *memStorage) GetMetrics() []Metrics {
-	metrics := []Metrics{}
-
-	m.mutex.RLock()
-	defer m.mutex.RUnlock()
-
-	for k, v := range m.Counters {
-		var metric Metrics
-
-		metric.ID = k
-		metric.MType = "counter"
-		metric.Delta = &v
-
-		metrics = append(metrics, metric)
-	}
-
-	for k, v := range m.Gauges {
-		var metric Metrics
-
-		metric.ID = k
-		metric.MType = "gauge"
-		metric.Value = &v
-
-		metrics = append(metrics, metric)
-	}
-
-	return metrics
-}
-
 func (m *memStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
@@ -190,4 +163,36 @@ func (m *memStorage) SetMetrics(ms *Metrics) error {
 	}
 
 	return errors.New("invalid params")
+}
+
+func (m *memStorage) RestoreMetrics(filename string) error {
+	file, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+
+	metrics := []Metrics{}
+	err = json.Unmarshal([]byte(file), &metrics)
+	if err != nil {
+		return err
+	}
+
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	for _, metric := range metrics {
+		if metric.MType == "gauge" {
+			if metric.Value != nil {
+				m.Gauges[metric.ID] = *metric.Value
+			}
+		}
+
+		if metric.MType == "counter" {
+			if metric.Delta != nil {
+				m.Counters[metric.ID] = *metric.Delta
+			}
+		}
+	}
+
+	return nil
 }

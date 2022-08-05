@@ -29,6 +29,14 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	// Restore metrics from file
+	if cfg.Restore {
+		err = rep.RestoreMetrics(cfg.StoreFile)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
 	// Initialize a new Handlers struct
 	h := handlers.NewHandlers(rep)
 

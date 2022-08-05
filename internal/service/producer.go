@@ -2,13 +2,19 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/ElOtro/go-metrics/internal/repo"
 )
+
+type OutputMetrics struct {
+	ID    string  `json:"id"`              // имя метрики
+	MType string  `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
 
 type producer struct {
 	storeInterval time.Duration
@@ -31,11 +37,11 @@ func (p *producer) Run() {
 	for {
 		<-time.After(p.storeInterval)
 
-		fmt.Println("-------------------------")
-		fmt.Println("File is saved")
+		// fmt.Println("-------------------------")
+		// fmt.Println("File is saved")
 
 		if err := p.WriteMetric(); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 
 	}
@@ -43,33 +49,43 @@ func (p *producer) Run() {
 }
 
 func (p *producer) WriteMetric() error {
-	if err := os.Remove(p.filename); err != nil {
-		log.Fatal(err)
-		return err
-	}
+	var metrics []OutputMetrics
 
-	file, err := os.OpenFile(p.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+	file, err := os.OpenFile(p.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND|os.O_TRUNC, 0777)
 	if err != nil {
 		return err
 	}
 
-	encoder := json.NewEncoder(file)
-	metrics := p.repo.GetMetrics()
-	for _, metric := range metrics {
-		if err := encoder.Encode(&metric); err != nil {
-			log.Fatal(err)
-			return err
-		}
+	gauges, counters := p.repo.GetAll()
+	for k, v := range gauges {
+		var metric = OutputMetrics{}
+
+		metric.ID = k
+		metric.MType = "gauge"
+		metric.Value = v
+
+		metrics = append(metrics, metric)
 	}
 
-	if err := file.Close(); err != nil {
-		log.Fatal(err)
+	for k, v := range counters {
+		var metric = OutputMetrics{}
+
+		metric.ID = k
+		metric.MType = "counter"
+		metric.Delta = v
+
+		metrics = append(metrics, metric)
+	}
+
+	js, err := json.Marshal(&metrics)
+	if err != nil {
 		return err
+	}
+
+	if _, err := file.Write(js); err != nil {
+		file.Close()
+		log.Fatal(err)
 	}
 
 	return nil
 }
-
-// func (p *producer) Close() error {
-// 	return p.file.Close()
-// }
