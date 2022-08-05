@@ -28,8 +28,7 @@ func (h *Handlers) Routes() *chi.Mux {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Compress(5))
-	// r.Use(app.getQueryParams)
+	r.Use(Compress)
 
 	// RESTy routes for "articles" resource
 	r.Get("/", h.GetAllMetricsHandler)
