@@ -8,25 +8,24 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
-type config struct {
-	address       string
+type servConfig struct {
 	storeInterval time.Duration
 	storeFile     string
 	restore       bool
 }
 
-type EnvConfig struct {
-	Address       string        `env:"ADDRESS,required" envDefault:"127.0.0.1:8080"`
-	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"300s"`
-	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
-	Restore       bool          `env:"RESTORE" envDefault:"true"`
+type ServerEnvConfig struct {
+	Address       string        `env:"ADDRESS"`
+	StoreInterval time.Duration `env:"STORE_INTERVAL"`
+	StoreFile     string        `env:"STORE_FILE"`
+	Restore       bool          `env:"RESTORE"`
 }
 
 // NewConfig returns app config.
-func NewConfig() (*EnvConfig, error) {
+func NewServerConfig() (*ServerEnvConfig, error) {
 
 	// Declare an instance of the environment config struct.
-	envCfg := &EnvConfig{}
+	envCfg := &ServerEnvConfig{}
 	err := env.Parse(envCfg)
 	if err != nil {
 		log.Fatal(err)
@@ -34,10 +33,13 @@ func NewConfig() (*EnvConfig, error) {
 
 	// Declare an instance of the config struct for values
 	// from a command line.
-	var cfg config
+	var cfg servConfig
+
+	addr := new(NetAddress)
+	_ = flag.Value(addr)
 
 	// Read the value of the port and env command-line flags into the config struct.
-	flag.StringVar(&cfg.address, "a", "127.0.0.1:8080", "Metrics server address")
+	flag.Var(addr, "a", "Metrics server address host:port")
 	flag.DurationVar(&cfg.storeInterval, "i", time.Duration(300), "pollInterval duration in seconds")
 	flag.StringVar(&cfg.storeFile, "f", "/tmp/devops-metrics-db.json", "json filename to store metrics")
 	flag.BoolVar(&cfg.restore, "r", true, "restore from json file")
@@ -45,7 +47,7 @@ func NewConfig() (*EnvConfig, error) {
 	flag.Parse()
 
 	if envCfg.Address == "" {
-		envCfg.Address = cfg.address
+		envCfg.Address = addr.String()
 	}
 
 	if envCfg.StoreInterval == 0 {

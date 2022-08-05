@@ -9,15 +9,14 @@ import (
 )
 
 type agentConfig struct {
-	address        string
 	reportInterval time.Duration
 	pollInterval   time.Duration
 }
 
 type AgentEnvConfig struct {
-	Address        string        `env:"ADDRESS,required" envDefault:"127.0.0.1:8080"`
-	ReportInterval time.Duration `env:"REPORT_INTERVAL" envDefault:"10s"`
-	PollInterval   time.Duration `env:"POLL_INTERVAL" envDefault:"2s"`
+	Address        string        `env:"ADDRESS,required"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
+	PollInterval   time.Duration `env:"POLL_INTERVAL"`
 }
 
 // NewConfig returns app config.
@@ -34,15 +33,18 @@ func NewAgentConfig() (*AgentEnvConfig, error) {
 	// from a command line.
 	var cfg agentConfig
 
+	addr := new(NetAddress)
+	_ = flag.Value(addr)
+
 	// Read the value of the port and env command-line flags into the config struct.
-	flag.StringVar(&cfg.address, "a", "127.0.0.1:8080", "Metrics server address")
+	flag.Var(addr, "a", "Metrics server address host:port")
 	flag.DurationVar(&cfg.reportInterval, "r", time.Duration(10), "reportInterval duration in seconds")
 	flag.DurationVar(&cfg.pollInterval, "p", time.Duration(2), "pollInterval duration in seconds")
 
 	flag.Parse()
 
 	if envCfg.Address == "" {
-		envCfg.Address = cfg.address
+		envCfg.Address = addr.String()
 	}
 
 	if envCfg.ReportInterval == 0 {

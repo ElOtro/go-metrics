@@ -13,13 +13,13 @@ import (
 
 func main() {
 	// Declare an instance of the config struct.
-	cfg, err := config.NewConfig()
+	cfg, err := config.NewServerConfig()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	// Print cfg on start
-	log.Println(cfg)
+	log.Print(cfg)
 
 	// Initialize a new Storage struct
 	rep, err := repo.NewMemStorage()
