@@ -10,14 +10,14 @@ import (
 
 // Define an application struct to hold the dependencies
 type application struct {
-	config *config.EnvConfig
+	config *config.AgentEnvConfig
 	stats  *data.Stats
 	client http.Client
 }
 
 func main() {
 	// Declare an instance of the config struct.
-	cfg, err := config.NewConfig()
+	cfg, err := config.NewAgentConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
