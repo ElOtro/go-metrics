@@ -47,6 +47,10 @@ func NewAgentConfig() (*AgentEnvConfig, error) {
 		envCfg.Address = addr.String()
 	}
 
+	if envCfg.Address == "" {
+		envCfg.Address = "127.0.0.1:8080"
+	}
+
 	if envCfg.ReportInterval == 0 {
 		envCfg.ReportInterval = cfg.reportInterval
 	}

@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"time"
 
@@ -46,8 +47,14 @@ func NewServerConfig() (*ServerEnvConfig, error) {
 
 	flag.Parse()
 
+	fmt.Println(addr.String())
+
 	if envCfg.Address == "" {
 		envCfg.Address = addr.String()
+	}
+
+	if envCfg.Address == "" {
+		envCfg.Address = "127.0.0.1:8080"
 	}
 
 	if envCfg.StoreInterval == 0 {
