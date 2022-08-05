@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"time"
 
@@ -24,7 +23,6 @@ type ServerEnvConfig struct {
 
 // NewConfig returns app config.
 func NewServerConfig() (*ServerEnvConfig, error) {
-
 	// Declare an instance of the environment config struct.
 	envCfg := &ServerEnvConfig{}
 	err := env.Parse(envCfg)
@@ -41,20 +39,14 @@ func NewServerConfig() (*ServerEnvConfig, error) {
 
 	// Read the value of the port and env command-line flags into the config struct.
 	flag.Var(addr, "a", "Metrics server address host:port")
-	flag.DurationVar(&cfg.storeInterval, "i", time.Duration(300), "pollInterval duration in seconds")
+	flag.DurationVar(&cfg.storeInterval, "i", time.Duration(300*time.Second), "pollInterval duration in seconds")
 	flag.StringVar(&cfg.storeFile, "f", "/tmp/devops-metrics-db.json", "json filename to store metrics")
 	flag.BoolVar(&cfg.restore, "r", true, "restore from json file")
 
 	flag.Parse()
 
-	fmt.Println(addr.String())
-
 	if envCfg.Address == "" {
 		envCfg.Address = addr.String()
-	}
-
-	if envCfg.Address == "" {
-		envCfg.Address = "127.0.0.1:8080"
 	}
 
 	if envCfg.StoreInterval == 0 {

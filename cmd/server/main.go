@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -48,6 +49,7 @@ func main() {
 	// Declare a HTTP server with some sensible timeout settings, which listens on the
 	// port provided in the config struct and uses the servemux we created above as the
 	// handler.
+	fmt.Println(cfg.Address)
 	srv := &http.Server{
 		Addr:         cfg.Address,
 		Handler:      h.Routes(),
