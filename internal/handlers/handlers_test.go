@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -151,7 +152,7 @@ func TestHandlers_CreateMetricsJSONHandler(t *testing.T) {
 			js := []byte(`{"id":"BuckHashSys","type":"gauge","value":3824}`)
 			body := bytes.NewReader(js)
 
-			request := httptest.NewRequest(http.MethodPost, "/value/", body)
+			request := httptest.NewRequest(http.MethodPost, "/update/", body)
 
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
@@ -175,6 +176,75 @@ func TestHandlers_CreateMetricsJSONHandler(t *testing.T) {
 				tt.fields.repo.AssertCalled(t, "SetMetrics", metric)
 				tt.fields.repo.AssertNumberOfCalls(t, "SetMetrics", 1)
 			}
+
+		})
+	}
+}
+
+func TestHandlers_GetMetricsJSONHandler(t *testing.T) {
+	type fields struct {
+		repo *mocks.Repo
+	}
+	// определяем структуру теста
+	type want struct {
+		statusCode int
+		value      float64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   want
+	}{
+		{
+			name: "Get JSON metric",
+			fields: fields{
+				repo: &mocks.Repo{},
+			},
+			want: want{
+				statusCode: http.StatusOK,
+				value:      3824,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var value float64 = 3824
+			metric := &storage.Metrics{ID: "BuckHashSys", MType: "gauge", Value: &value}
+
+			tt.fields.repo.On("GetMetricsByID", metric.ID, metric.MType).Return(metric, nil)
+
+			h := &Handlers{
+				repo: tt.fields.repo,
+			}
+
+			js := []byte(`{"id":"BuckHashSys","type":"gauge"}`)
+			body := bytes.NewReader(js)
+
+			request := httptest.NewRequest(http.MethodPost, "/value/", body)
+
+			// создаём новый Recorder
+			w := httptest.NewRecorder()
+			// определяем хендлер
+			hh := http.HandlerFunc(h.GetMetricsJSONHandler)
+			hh.ServeHTTP(w, request)
+			res := w.Result()
+			// получаем и проверяем тело запроса
+			defer res.Body.Close()
+
+			fmt.Println(res)
+
+			// проверяем код ответа
+			if res.StatusCode != tt.want.statusCode {
+				t.Errorf("Expected status code %d, got %d", tt.want.statusCode, w.Code)
+			}
+
+			{
+				assert.Equal(t, tt.want.statusCode, res.StatusCode)
+				assert.Equal(t, tt.want.value, value)
+			}
+
+			tt.fields.repo.AssertCalled(t, "GetMetricsByID", metric.ID, metric.MType)
+			tt.fields.repo.AssertNumberOfCalls(t, "GetMetricsByID", 1)
 
 		})
 	}
