@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/ElOtro/go-metrics/internal/handlers/mocks"
+	"github.com/ElOtro/go-metrics/internal/repo/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
@@ -100,6 +102,80 @@ func TestHandlers_GetMetricHandler(t *testing.T) {
 				repo: tt.fields.repo,
 			}
 			h.GetMetricHandler(tt.args.w, tt.args.r)
+		})
+	}
+}
+
+func TestHandlers_CreateMetricsJSONHandler(t *testing.T) {
+	type fields struct {
+		r    *chi.Mux
+		repo *mocks.Repo
+	}
+	// определяем структуру теста
+	type want struct {
+		statusCode      int
+		wantCallService bool
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   want
+	}{
+
+		// определяем все тесты
+		{
+			name: "Create new metric",
+			fields: fields{
+				r:    chi.NewRouter(),
+				repo: &mocks.Repo{},
+			},
+			want: want{
+				statusCode:      http.StatusOK,
+				wantCallService: true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var value float64 = 3824
+			metric := &storage.Metrics{ID: "BuckHashSys", MType: "gauge", Value: &value}
+
+			if tt.want.wantCallService {
+				tt.fields.repo.On("SetMetrics", metric).Return(nil)
+			}
+
+			h := &Handlers{
+				repo: tt.fields.repo,
+			}
+
+			js := []byte(`{"id":"BuckHashSys","type":"gauge","value":3824}`)
+			body := bytes.NewReader(js)
+
+			request := httptest.NewRequest(http.MethodPost, "/value/", body)
+
+			// создаём новый Recorder
+			w := httptest.NewRecorder()
+			// определяем хендлер
+			hh := http.HandlerFunc(h.CreateMetricsJSONHandler)
+			hh.ServeHTTP(w, request)
+			res := w.Result()
+			// получаем и проверяем тело запроса
+			defer res.Body.Close()
+
+			// проверяем код ответа
+			if res.StatusCode != tt.want.statusCode {
+				t.Errorf("Expected status code %d, got %d", tt.want.statusCode, w.Code)
+			}
+
+			{
+				assert.Equal(t, tt.want.statusCode, res.StatusCode)
+			}
+
+			if tt.want.wantCallService {
+				tt.fields.repo.AssertCalled(t, "SetMetrics", metric)
+				tt.fields.repo.AssertNumberOfCalls(t, "SetMetrics", 1)
+			}
+
 		})
 	}
 }
