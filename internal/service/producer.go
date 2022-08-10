@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ElOtro/go-metrics/internal/repo"
+	"github.com/ElOtro/go-metrics/internal/repo/storage"
 )
 
 type OutputMetrics struct {
@@ -37,9 +38,6 @@ func (p *producer) Run() {
 	for {
 		<-time.After(p.storeInterval)
 
-		// fmt.Println("-------------------------")
-		// fmt.Println("File is saved")
-
 		if err := p.WriteMetric(); err != nil {
 			log.Println(err)
 		}
@@ -61,7 +59,7 @@ func (p *producer) WriteMetric() error {
 		var metric = OutputMetrics{}
 
 		metric.ID = k
-		metric.MType = "gauge"
+		metric.MType = storage.Gauge
 		metric.Value = v
 
 		metrics = append(metrics, metric)
@@ -71,7 +69,7 @@ func (p *producer) WriteMetric() error {
 		var metric = OutputMetrics{}
 
 		metric.ID = k
-		metric.MType = "counter"
+		metric.MType = storage.Counter
 		metric.Delta = v
 
 		metrics = append(metrics, metric)
@@ -84,7 +82,7 @@ func (p *producer) WriteMetric() error {
 
 	if _, err := file.Write(js); err != nil {
 		file.Close()
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	return nil

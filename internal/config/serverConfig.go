@@ -21,7 +21,7 @@ type ServerEnvConfig struct {
 	Restore       bool          `env:"RESTORE"`
 }
 
-// NewConfig returns app config.
+// NewServerConfig returns app config.
 func NewServerConfig() (*ServerEnvConfig, error) {
 	// Declare an instance of the environment config struct.
 	envCfg := &ServerEnvConfig{}
@@ -35,7 +35,6 @@ func NewServerConfig() (*ServerEnvConfig, error) {
 	var cfg servConfig
 
 	addr := new(NetAddress)
-	_ = flag.Value(addr)
 
 	// Read the value of the port and env command-line flags into the config struct.
 	flag.Var(addr, "a", "Metrics server address host:port")

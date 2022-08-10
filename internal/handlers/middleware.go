@@ -3,6 +3,7 @@ package handlers
 import (
 	"compress/gzip"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -32,7 +33,10 @@ func Compress(next http.Handler) http.Handler {
 		// создаём gzip.Writer поверх текущего w
 		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
 		if err != nil {
-			io.WriteString(w, err.Error())
+			_, e := io.WriteString(w, err.Error())
+			if e != nil {
+				log.Println(e)
+			}
 			return
 		}
 		defer gz.Close()

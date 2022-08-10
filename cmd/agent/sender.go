@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/ElOtro/go-metrics/internal/repo/storage"
 )
 
 // Run sending metrics for each type (gauge, counter)
@@ -26,7 +28,7 @@ func (app *application) postMetrics() {
 
 func sendGauges(client http.Client, gauges map[string]float64, address string) {
 	for k, v := range gauges {
-		url := fmt.Sprintf("http://%s/%s/%s/%s/%.2f", address, "update", "gauge", k, v)
+		url := fmt.Sprintf("http://%s/%s/%s/%s/%.2f", address, "update", storage.Gauge, k, v)
 
 		resp, err := client.Post(url, "text/plain", nil)
 		if err != nil {
@@ -41,7 +43,7 @@ func sendGauges(client http.Client, gauges map[string]float64, address string) {
 
 func sendCounters(client http.Client, counters map[string]int64, address string) {
 	for k, v := range counters {
-		url := fmt.Sprintf("http://%s/%s/%s/%s/%d", address, "update", "counter", k, v)
+		url := fmt.Sprintf("http://%s/%s/%s/%s/%d", address, "update", storage.Counter, k, v)
 
 		resp, err := client.Post(url, "text/plain", nil)
 		if err != nil {

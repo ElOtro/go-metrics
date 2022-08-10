@@ -9,12 +9,20 @@ import (
 	"sync"
 )
 
+var ErrInvalidPrams = errors.New("invalid params")
+var ErrNotFound = errors.New("not found")
+
 type Metrics struct {
 	ID    string   `json:"id"`              // имя метрики
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
 	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
+
+const (
+	Counter = "counter"
+	Gauge   = "gauge"
+)
 
 type memStorage struct {
 	mutex    sync.RWMutex
@@ -32,9 +40,6 @@ func New() *memStorage {
 }
 
 func (m *memStorage) GetAll() (map[string]float64, map[string]int64) {
-	m.mutex.RLock()
-	defer m.mutex.RUnlock()
-
 	return m.Gauges, m.Counters
 }
 
@@ -44,14 +49,14 @@ func (m *memStorage) Get(t, n string) (string, error) {
 
 	value := ""
 
-	if t == "gauge" {
+	if t == Gauge {
 		v, ok := m.Gauges[n]
 		if ok {
 			value = fmt.Sprintf("%.3f", v)
 		}
 	}
 
-	if t == "counter" {
+	if t == Counter {
 		v, ok := m.Counters[n]
 		if ok {
 			value = fmt.Sprintf("%d", v)
@@ -59,7 +64,7 @@ func (m *memStorage) Get(t, n string) (string, error) {
 	}
 
 	if value == "" {
-		return "", errors.New("not found")
+		return "", ErrNotFound
 	}
 
 	return value, nil
@@ -69,7 +74,7 @@ func (m *memStorage) Set(t, n, v string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	if t == "gauge" {
+	if t == Gauge {
 		value, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			return err
@@ -80,16 +85,16 @@ func (m *memStorage) Set(t, n, v string) error {
 		return nil
 	}
 
-	if t == "counter" {
+	if t == Counter {
 		value, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
 			return err
 		}
 
-		_, ok := m.Counters[n]
+		v, ok := m.Counters[n]
 
 		if ok {
-			m.Counters[n] = m.Counters[n] + value
+			m.Counters[n] = v + value
 		} else {
 			m.Counters[n] = value
 		}
@@ -97,7 +102,7 @@ func (m *memStorage) Set(t, n, v string) error {
 		return nil
 	}
 
-	return errors.New("invalid params")
+	return ErrInvalidPrams
 }
 
 // New JSON API
@@ -107,26 +112,26 @@ func (m *memStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 
 	var input Metrics
 
-	if mtype == "gauge" {
+	if mtype == Gauge {
 		v, ok := m.Gauges[id]
 		if ok {
 			input.ID = id
-			input.MType = "gauge"
+			input.MType = Gauge
 			input.Value = &v
 		}
 	}
 
-	if mtype == "counter" {
+	if mtype == Counter {
 		v, ok := m.Counters[id]
 		if ok {
 			input.ID = id
-			input.MType = "counter"
+			input.MType = Counter
 			input.Delta = &v
 		}
 	}
 
 	if input.ID == "" {
-		return nil, errors.New("not found")
+		return nil, ErrNotFound
 	}
 
 	return &input, nil
@@ -137,9 +142,9 @@ func (m *memStorage) SetMetrics(ms *Metrics) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	if ms.MType == "gauge" {
+	if ms.MType == Gauge {
 		if ms.Value == nil {
-			return errors.New("invalid params")
+			return ErrInvalidPrams
 		}
 
 		m.Gauges[ms.ID] = *ms.Value
@@ -147,9 +152,9 @@ func (m *memStorage) SetMetrics(ms *Metrics) error {
 		return nil
 	}
 
-	if ms.MType == "counter" {
+	if ms.MType == Counter {
 		if ms.Delta == nil {
-			return errors.New("invalid params")
+			return ErrInvalidPrams
 		}
 		value, ok := m.Counters[ms.ID]
 
@@ -162,7 +167,7 @@ func (m *memStorage) SetMetrics(ms *Metrics) error {
 		return nil
 	}
 
-	return errors.New("invalid params")
+	return ErrInvalidPrams
 }
 
 func (m *memStorage) RestoreMetrics(filename string) error {
@@ -181,13 +186,13 @@ func (m *memStorage) RestoreMetrics(filename string) error {
 	defer m.mutex.Unlock()
 
 	for _, metric := range metrics {
-		if metric.MType == "gauge" {
+		if metric.MType == Gauge {
 			if metric.Value != nil {
 				m.Gauges[metric.ID] = *metric.Value
 			}
 		}
 
-		if metric.MType == "counter" {
+		if metric.MType == Counter {
 			if metric.Delta != nil {
 				m.Counters[metric.ID] = *metric.Delta
 			}

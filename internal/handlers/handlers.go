@@ -69,7 +69,7 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if t != "gauge" && t != "counter" {
+	if t != storage.Gauge && t != storage.Counter {
 		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
@@ -118,7 +118,10 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(js)
+	_, err = w.Write(js)
+	if err != nil {
+		log.Println(err)
+	}
 
 }
 
