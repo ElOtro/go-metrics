@@ -28,18 +28,16 @@ func (h *Handlers) Routes() *chi.Mux {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	// r.Use(app.getQueryParams)
+	r.Use(Compress)
 
 	// RESTy routes for "articles" resource
 	r.Get("/", h.GetAllMetricsHandler)
+	r.Get("/value/{type}/{name}", h.GetMetricHandler)
 
-	r.Route("/value", func(r chi.Router) {
-		r.Get("/{type}/{name}", h.GetMetricHandler)
-	})
+	r.Post("/update/{type}/{name}/{value}", h.CreateMetricHandler)
 
-	r.Route("/update", func(r chi.Router) {
-		r.Post("/{type}/{name}/{value}", h.CreateMetricHandler)
-	})
+	r.Post("/update/", h.CreateMetricsJSONHandler)
+	r.Post("/value/", h.GetMetricsJSONHandler)
 
 	return r
 

@@ -2,39 +2,55 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"time"
+
+	"github.com/ElOtro/go-metrics/internal/repo/storage"
 )
 
 // Run sending metrics for each type (gauge, counter)
-func (app *application) postMetricsHandler() {
-	cfg := app.config
+func (app *application) postMetrics() {
+	cfg := *app.config
 	var client = app.client
-	var interval = time.Duration(app.config.reportInterval) * time.Second
+	var interval = cfg.ReportInterval
 	for {
 		<-time.After(interval)
 
 		// sending gauge metrics
-		for k, v := range app.stats.Gauges {
-			url := fmt.Sprintf("http://%s:%d/%s/%s/%s/%.2f", cfg.collectorSrv.address, cfg.collectorSrv.port, "update", "gauge", k, v)
-
-			resp, err := client.Post(url, "text/plain", nil)
-			if err != nil {
-				fmt.Println("Error")
-			}
-			resp.Body.Close()
-		}
-
+		sendGauges(client, app.stats.Gauges, cfg.Address)
 		// sending counter metrics
-		for k, v := range app.stats.Counters {
-			url := fmt.Sprintf("http://%s:%d/%s/%s/%s/%d", cfg.collectorSrv.address, cfg.collectorSrv.port, "update", "counter", k, v)
+		sendCounters(client, app.stats.Counters, cfg.Address)
 
-			resp, err := client.Post(url, "text/plain", nil)
-			if err != nil {
-				fmt.Println("Error")
-			}
+	}
+
+}
+
+func sendGauges(client http.Client, gauges map[string]float64, address string) {
+	for k, v := range gauges {
+		url := fmt.Sprintf("http://%s/%s/%s/%s/%.2f", address, "update", storage.Gauge, k, v)
+
+		resp, err := client.Post(url, "text/plain", nil)
+		if err != nil {
+			log.Println(err)
+		} else {
 			resp.Body.Close()
 		}
 
+	}
+
+}
+
+func sendCounters(client http.Client, counters map[string]int64, address string) {
+	for k, v := range counters {
+		url := fmt.Sprintf("http://%s/%s/%s/%s/%d", address, "update", storage.Counter, k, v)
+
+		resp, err := client.Post(url, "text/plain", nil)
+		if err != nil {
+			log.Println(err)
+		} else {
+			resp.Body.Close()
+		}
 	}
 
 }

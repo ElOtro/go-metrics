@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ElOtro/go-metrics/internal/repo/storage"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -17,6 +18,7 @@ func (h *Handlers) GetAllMetricsHandler(w http.ResponseWriter, r *http.Request) 
 
 	s := fmt.Sprintf("gauges: %s\r\ncounters: %s\r\n", string(g), string(c))
 
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte(s))
 	if err != nil {
@@ -67,13 +69,78 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if t != "gauge" && t != "counter" {
+	if t != storage.Gauge && t != storage.Counter {
 		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
 
 	err := h.repo.Set(t, n, v)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+}
+
+//  New API
+func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
+
+	var input storage.Metrics
+
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&input)
+
+	if err != nil {
+		log.Println(err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	m, err := h.repo.GetMetricsByID(input.ID, input.MType)
+	if err != nil {
+		log.Println(err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	// преобразуем m в JSON-формат
+	js, err := json.Marshal(m)
+	if err != nil {
+		log.Println(err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(js)
+	if err != nil {
+		log.Println(err)
+	}
+
+}
+
+func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
+
+	var input *storage.Metrics
+
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&input)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = h.repo.SetMetrics(input)
+	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

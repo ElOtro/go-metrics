@@ -1,48 +1,57 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/ElOtro/go-metrics/internal/config"
 	"github.com/ElOtro/go-metrics/internal/handlers"
 	"github.com/ElOtro/go-metrics/internal/repo"
+	"github.com/ElOtro/go-metrics/internal/service"
 )
-
-// Define a config struct to hold all the configuration settings for our application.
-type config struct {
-	address    string
-	port       int
-	enviroment string
-}
 
 func main() {
 	// Declare an instance of the config struct.
-	var cfg config
-
-	// Read the value of the port and env command-line flags into the config struct.
-	flag.StringVar(&cfg.address, "address", "127.0.0.1", "API server address")
-	flag.IntVar(&cfg.port, "port", 8080, "API server port")
-	flag.StringVar(&cfg.enviroment, "enviroment", "debug", "API server mode")
-
-	flag.Parse()
-
-	rep, err := repo.NewGetter(&repo.Options{Environment: cfg.enviroment})
+	cfg, err := config.NewServerConfig()
 	if err != nil {
-		//  в мейн паниковать можно
 		log.Fatalln(err)
+	}
+
+	// Print cfg on start
+	log.Print(cfg)
+
+	// Initialize a new Storage struct
+	rep, err := repo.NewMemStorage()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Restore metrics from file
+	if cfg.Restore {
+		err = rep.RestoreMetrics(cfg.StoreFile)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	// Initialize a new Handlers struct
 	h := handlers.NewHandlers(rep)
 
+	producer, err := service.NewProducer(cfg.StoreInterval, cfg.StoreFile, rep)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	// Run producer to write JSON metrics
+	go producer.Run()
+
 	// Declare a HTTP server with some sensible timeout settings, which listens on the
 	// port provided in the config struct and uses the servemux we created above as the
 	// handler.
+	fmt.Println(cfg.Address)
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.port),
+		Addr:         cfg.Address,
 		Handler:      h.Routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,

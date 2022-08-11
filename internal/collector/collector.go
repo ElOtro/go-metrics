@@ -15,7 +15,7 @@ type Stats struct {
 }
 
 // Initialize new Stats
-func NewStats(duration int) *Stats {
+func NewStats(duration time.Duration) *Stats {
 
 	s := &Stats{
 		mutex:    sync.RWMutex{},
@@ -31,12 +31,11 @@ func NewStats(duration int) *Stats {
 }
 
 // Run to collect metrics with certain interval
-func runStats(s *Stats, duration int) {
+func runStats(s *Stats, duration time.Duration) {
 	var rtm runtime.MemStats
-	var interval = time.Duration(duration) * time.Second
 
 	for {
-		<-time.After(interval)
+		<-time.After(duration)
 
 		runtime.ReadMemStats(&rtm)
 		updateStats(s, &rtm)
@@ -69,6 +68,7 @@ func updateStats(s *Stats, rtm *runtime.MemStats) {
 	s.Gauges["MCacheInuse"] = float64(rtm.MCacheInuse)
 	s.Gauges["MCacheSys"] = float64(rtm.MCacheSys)
 	s.Gauges["MSpanInuse"] = float64(rtm.MSpanInuse)
+	s.Gauges["MSpanSys"] = float64(rtm.MSpanSys)
 	s.Gauges["Mallocs"] = float64(rtm.Mallocs)
 	s.Gauges["NextGC"] = float64(rtm.NextGC)
 	s.Gauges["NumForcedGC"] = float64(rtm.NumForcedGC)
