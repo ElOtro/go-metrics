@@ -140,7 +140,7 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
-	hash := r.Header.Get("Hash")
+	// hash := r.Header.Get("Hash")
 	var input *storage.Metrics
 
 	dec := json.NewDecoder(r.Body)
@@ -152,10 +152,10 @@ func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if h.hm.UseHash && !h.hm.Valid(hash, input) {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	// if h.hm.UseHash && !h.hm.Valid(hash, input) {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	return
+	// }
 
 	err = h.repo.SetMetrics(input)
 	if err != nil {
