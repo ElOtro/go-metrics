@@ -53,7 +53,7 @@ func (m *memStorage) Get(t, n string) (string, error) {
 	if t == Gauge {
 		v, ok := m.Gauges[n]
 		if ok {
-			value = fmt.Sprintf("%f", v)
+			value = fmt.Sprintf("%.3f", v)
 		}
 	}
 

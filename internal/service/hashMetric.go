@@ -75,7 +75,7 @@ func (hm *HashMetric) Hash(m *storage.Metrics) string {
 	}
 
 	if m.MType == storage.Gauge {
-		metric = fmt.Sprintf("%s:%s:%f", m.ID, m.MType, *m.Value)
+		metric = fmt.Sprintf("%s:%s:%.3f", m.ID, m.MType, *m.Value)
 	}
 
 	h := hmac.New(sha256.New, hm.key)
