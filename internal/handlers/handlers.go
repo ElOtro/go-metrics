@@ -125,6 +125,10 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	if h.hm.UseHash {
+		hash := h.hm.Hash(m)
+		m.Hash = hash
+	}
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(js)
 	if err != nil {
@@ -158,6 +162,9 @@ func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if h.hm.UseHash {
+		w.Header().Set("Hash", h.hm.Hash(input))
+	}
 	w.WriteHeader(http.StatusOK)
 
 }
