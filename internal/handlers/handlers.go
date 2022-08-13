@@ -93,6 +93,7 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 //  New API
+// GetMetricsJSONHandler respond to POST /value/
 func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 	var input storage.Metrics
