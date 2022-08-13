@@ -100,7 +100,6 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&input)
-
 	if err != nil {
 		log.Println(err)
 		w.Header().Set("Content-Type", "application/json")
@@ -122,6 +121,7 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 		w.Header().Set("Hash", hash)
 	}
 
+	log.Printf("%+v", input)
 	// преобразуем m в JSON-формат
 	js, err := json.Marshal(m)
 	if err != nil {
@@ -146,7 +146,6 @@ func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Reque
 
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&input)
-
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -157,6 +156,7 @@ func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Reque
 	// 	w.WriteHeader(http.StatusBadRequest)
 	// 	return
 	// }
+	log.Printf("%+v", input)
 
 	err = h.repo.SetMetrics(input)
 	if err != nil {
