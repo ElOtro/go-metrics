@@ -118,7 +118,7 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 	if h.hm.UseHash {
 		hash := h.hm.Hash(m)
 		m.Hash = hash
-		w.Header().Set("Hash", "hash")
+		w.Header().Set("Hash", hash)
 	}
 
 	// преобразуем m в JSON-формат
