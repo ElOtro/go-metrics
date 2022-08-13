@@ -11,12 +11,14 @@ import (
 type agentConfig struct {
 	reportInterval time.Duration
 	pollInterval   time.Duration
+	key            string
 }
 
 type AgentEnvConfig struct {
 	Address        string        `env:"ADDRESS"`
 	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 	PollInterval   time.Duration `env:"POLL_INTERVAL"`
+	Key            string        `env:"KEY"`
 }
 
 // NewAgentConfig returns app config.
@@ -37,6 +39,7 @@ func NewAgentConfig() (*AgentEnvConfig, error) {
 	flag.Var(addr, "a", "Metrics server address host:port")
 	flag.DurationVar(&cfg.reportInterval, "r", time.Duration(10*time.Second), "reportInterval duration in seconds")
 	flag.DurationVar(&cfg.pollInterval, "p", time.Duration(2*time.Second), "pollInterval duration in seconds")
+	flag.StringVar(&cfg.key, "k", "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b", "key")
 
 	flag.Parse()
 
@@ -50,6 +53,10 @@ func NewAgentConfig() (*AgentEnvConfig, error) {
 
 	if envCfg.PollInterval == 0 {
 		envCfg.PollInterval = cfg.pollInterval
+	}
+
+	if envCfg.Key == "" {
+		envCfg.Key = cfg.key
 	}
 
 	return envCfg, nil

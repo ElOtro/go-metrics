@@ -36,8 +36,11 @@ func main() {
 		}
 	}
 
+	// HashMetric service
+	hm := service.NewHashMetric(cfg.Key)
+
 	// Initialize a new Handlers struct
-	h := handlers.NewHandlers(rep)
+	h := handlers.NewHandlers(rep, *hm)
 
 	producer, err := service.NewProducer(cfg.StoreInterval, cfg.StoreFile, rep)
 	if err != nil {

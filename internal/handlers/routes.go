@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/ElOtro/go-metrics/internal/repo"
+	"github.com/ElOtro/go-metrics/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -13,12 +14,13 @@ type Repo interface {
 // Create a Handlers struct which wraps all models.
 type Handlers struct {
 	repo Repo
+	hm   service.HashMetric
 }
 
 // For ease of use, we also add a NewHandlers() method which
 // returns a Handlers struct
-func NewHandlers(repo repo.Getter) *Handlers {
-	return &Handlers{repo: repo}
+func NewHandlers(repo repo.Getter, hm service.HashMetric) *Handlers {
+	return &Handlers{repo: repo, hm: hm}
 }
 
 func (h *Handlers) Routes() *chi.Mux {

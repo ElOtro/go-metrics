@@ -54,6 +54,8 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 	n := chi.URLParam(r, "name")
 	v := chi.URLParam(r, "value")
 
+	hash := r.Header.Get("Hash")
+
 	if t == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -71,6 +73,12 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 	if t != storage.Gauge && t != storage.Counter {
 		w.WriteHeader(http.StatusNotImplemented)
+		return
+	}
+
+	// Check if a hash from a header request is not valid
+	if h.hm.UseHash && !h.hm.ValidAgentHash(hash, t, n, v) {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -126,7 +134,7 @@ func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
-
+	hash := r.Header.Get("Hash")
 	var input *storage.Metrics
 
 	dec := json.NewDecoder(r.Body)
@@ -134,6 +142,11 @@ func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if h.hm.UseHash && !h.hm.Valid(hash, input) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
