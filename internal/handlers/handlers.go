@@ -54,7 +54,7 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 	n := chi.URLParam(r, "name")
 	v := chi.URLParam(r, "value")
 
-	hash := r.Header.Get("Hash")
+	// hash := r.Header.Get("Hash")
 
 	if t == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -77,10 +77,10 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if a hash from a header request is not valid
-	if h.hm.UseHash && !h.hm.ValidAgentHash(hash, t, n, v) {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	// if h.hm.UseHash && !h.hm.ValidAgentHash(hash, t, n, v) {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	return
+	// }
 
 	err := h.repo.Set(t, n, v)
 	if err != nil {
