@@ -39,7 +39,8 @@ func NewAgentConfig() (*AgentEnvConfig, error) {
 	flag.Var(addr, "a", "Metrics server address host:port")
 	flag.DurationVar(&cfg.reportInterval, "r", time.Duration(10*time.Second), "reportInterval duration in seconds")
 	flag.DurationVar(&cfg.pollInterval, "p", time.Duration(2*time.Second), "pollInterval duration in seconds")
-	flag.StringVar(&cfg.key, "k", "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b", "key")
+	flag.StringVar(&cfg.key, "k", "", "key")
+	// flag.StringVar(&cfg.key, "k", "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b", "key")
 
 	flag.Parse()
 
