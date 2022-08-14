@@ -58,6 +58,20 @@ func (_m *Repo) GetAll() (map[string]float64, map[string]int64) {
 	return r0, r1
 }
 
+// GetHealth provides a mock function with given fields:
+func (_m *Repo) GetHealth() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetMetricsByID provides a mock function with given fields: id, mtype
 func (_m *Repo) GetMetricsByID(id string, mtype string) (*storage.Metrics, error) {
 	ret := _m.Called(id, mtype)

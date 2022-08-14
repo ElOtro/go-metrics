@@ -41,6 +41,9 @@ func (h *Handlers) Routes() *chi.Mux {
 	r.Post("/update/", h.CreateMetricsJSONHandler)
 	r.Post("/value/", h.GetMetricsJSONHandler)
 
+	// ping repo
+	r.Get("/ping/", h.HealthHandler)
+
 	return r
 
 }

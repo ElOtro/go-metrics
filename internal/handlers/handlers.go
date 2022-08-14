@@ -171,3 +171,14 @@ func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 
 }
+
+func (h *Handlers) HealthHandler(w http.ResponseWriter, r *http.Request) {
+	err := h.repo.GetHealth()
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

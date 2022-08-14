@@ -1,22 +1,30 @@
 package repo
 
 import (
-	memStorage "github.com/ElOtro/go-metrics/internal/repo/storage"
+	"github.com/ElOtro/go-metrics/internal/repo/storage"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type Options struct {
-	Environment string
+	Memory bool
+	DB     *pgxpool.Pool
 }
 
 type Getter interface {
 	GetAll() (map[string]float64, map[string]int64)
 	Get(t, n string) (string, error)
 	Set(t, n, v string) error
-	GetMetricsByID(id, mtype string) (*memStorage.Metrics, error)
-	SetMetrics(*memStorage.Metrics) error
+	GetMetricsByID(id, mtype string) (*storage.Metrics, error)
+	SetMetrics(*storage.Metrics) error
 	RestoreMetrics(filename string) error
+	GetHealth() error
 }
 
-func NewMemStorage() (Getter, error) {
-	return memStorage.New(), nil
+func NewRepo(options *Options) (Getter, error) {
+	if options.Memory {
+		return storage.NewMemStorage(), nil
+	}
+
+	return storage.NewPgStorage(options.DB), nil
+
 }

@@ -13,6 +13,7 @@ type servConfig struct {
 	storeFile     string
 	restore       bool
 	key           string
+	dsn           string
 }
 
 type ServerEnvConfig struct {
@@ -21,6 +22,7 @@ type ServerEnvConfig struct {
 	StoreFile     string        `env:"STORE_FILE"`
 	Restore       bool          `env:"RESTORE"`
 	Key           string        `env:"KEY"`
+	Dsn           string        `env:"DATABASE_DSN"` // PostgreSQL DSN
 }
 
 // NewServerConfig returns app config.
@@ -43,8 +45,12 @@ func NewServerConfig() (*ServerEnvConfig, error) {
 	flag.DurationVar(&cfg.storeInterval, "i", time.Duration(300*time.Second), "pollInterval duration in seconds")
 	flag.StringVar(&cfg.storeFile, "f", "/tmp/devops-metrics-db.json", "json filename to store metrics")
 	flag.BoolVar(&cfg.restore, "r", true, "restore from json file")
-	// flag.StringVar(&cfg.key, "k", "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b", "key")
+	// Key for sha256
+	// test key is "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b"
 	flag.StringVar(&cfg.key, "k", "", "key")
+	// Read the DSN value from the d command-line flag into the config struct. We
+	// default to using our development DSN if no flag is provided.
+	flag.StringVar(&cfg.dsn, "d", "", "PostgreSQL DSN")
 
 	flag.Parse()
 
@@ -62,6 +68,14 @@ func NewServerConfig() (*ServerEnvConfig, error) {
 
 	if envCfg.Key == "" {
 		envCfg.Key = cfg.key
+	}
+
+	if envCfg.Dsn == "" {
+		envCfg.Dsn = cfg.dsn
+	}
+
+	if envCfg.Dsn != "" {
+		envCfg.Restore = false
 	}
 
 	return envCfg, nil
