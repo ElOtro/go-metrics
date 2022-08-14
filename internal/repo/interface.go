@@ -21,11 +21,10 @@ type Getter interface {
 }
 
 func NewRepo(options *Options) (Getter, error) {
-	return storage.NewMemStorage(), nil
-	// if options.Memory {
-	// 	return storage.NewMemStorage(), nil
-	// }
+	if !options.Memory {
+		return storage.NewPgStorage(options.DB), nil
+	}
 
-	// return storage.NewPgStorage(options.DB), nil
+	return storage.NewMemStorage(), nil
 
 }
