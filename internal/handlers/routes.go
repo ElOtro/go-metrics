@@ -42,7 +42,7 @@ func (h *Handlers) Routes() *chi.Mux {
 	r.Post("/value/", h.GetMetricsJSONHandler)
 
 	// ping repo
-	r.Get("/ping/", h.HealthHandler)
+	r.Get("/ping", h.HealthHandler)
 
 	return r
 
