@@ -1,6 +1,8 @@
 package repo
 
 import (
+	"errors"
+
 	"github.com/ElOtro/go-metrics/internal/repo/storage"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -9,6 +11,9 @@ type Options struct {
 	Memory bool
 	DB     *pgxpool.Pool
 }
+
+var ErrEmptyOptions = errors.New("empty options")
+var ErrInvalidOptions = errors.New("invalid options")
 
 type Getter interface {
 	GetAll() (map[string]float64, map[string]int64)
@@ -20,11 +25,18 @@ type Getter interface {
 	GetHealth() error
 }
 
-func NewRepo(options *Options) (Getter, error) {
-	if !options.Memory {
-		return storage.NewPgStorage(options.DB), nil
+func NewRepo(opts *Options) (Getter, error) {
+	if !opts.Memory {
+		return storage.NewPgStorage(opts.DB), nil
 	}
 
-	return storage.NewMemStorage(), nil
+	switch opts.Memory {
+	case true:
+		return storage.NewMemStorage(), nil
+	case false:
+		return storage.NewPgStorage(opts.DB), nil
+	default:
+		return nil, errors.New("invalid settings")
+	}
 
 }
