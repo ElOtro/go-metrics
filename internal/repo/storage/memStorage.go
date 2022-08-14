@@ -187,5 +187,6 @@ func (m *memStorage) RestoreMetrics(filename string) error {
 }
 
 func (m *memStorage) GetHealth() error {
+	// nothing to return
 	return nil
 }
