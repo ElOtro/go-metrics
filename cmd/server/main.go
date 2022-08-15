@@ -36,8 +36,8 @@ func main() {
 			log.Fatal(err)
 		}
 		// Add pgxpool.Pool to options
-		repoOptions.DB = db
-		repoOptions.Memory = false
+		// repoOptions.DB = db
+		// repoOptions.Memory = false
 		// Defer a call to db.Close() so that the connection pool is closed before the
 		// main() function exits.
 		defer db.Close()
