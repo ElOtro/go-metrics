@@ -26,13 +26,14 @@ type Getter interface {
 }
 
 func NewRepo(opts *Options) (Getter, error) {
-	switch opts.Memory {
-	case true:
-		return storage.NewMemStorage(), nil
-	case false:
-		return storage.NewPgStorage(opts.DB), nil
-	default:
-		return nil, errors.New("invalid settings")
-	}
+	return storage.NewMemStorage(), nil
+	// switch opts.Memory {
+	// case true:
+	// 	return storage.NewMemStorage(), nil
+	// case false:
+	// 	return storage.NewPgStorage(opts.DB), nil
+	// default:
+	// 	return nil, ErrInvalidOptions
+	// }
 
 }
