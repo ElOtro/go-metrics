@@ -67,17 +67,17 @@ func NewServerConfig() (*ServerEnvConfig, error) {
 		envCfg.StoreInterval = cfg.storeInterval
 	}
 
-	// if envCfg.StoreFile == "" {
-	// 	envCfg.StoreFile = cfg.storeFile
-	// }
+	if envCfg.StoreFile == "" {
+		envCfg.StoreFile = cfg.storeFile
+	}
 
 	if envCfg.Key == "" {
 		envCfg.Key = cfg.key
 	}
 
-	if envCfg.Dsn == "" {
-		envCfg.Dsn = cfg.dsn
-	}
+	// if envCfg.Dsn == "" {
+	envCfg.Dsn = cfg.dsn
+	// }
 
 	// if envCfg.Dsn != "" {
 	// 	envCfg.Restore = false

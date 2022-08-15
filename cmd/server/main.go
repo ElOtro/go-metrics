@@ -30,18 +30,18 @@ func main() {
 	// Call the openDB() helper function (see below) to create the connection pool,
 	// passing in the config struct. If this returns an error, we log it and exit the
 	// application immediately.
-	// if cfg.Dsn != "" && cfg.StoreFile == "" {
-	// 	db, err := openDB(cfg.Dsn)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	// Add pgxpool.Pool to options
-	// 	repoOptions.DB = db
-	// 	repoOptions.Memory = false
-	// 	// Defer a call to db.Close() so that the connection pool is closed before the
-	// 	// main() function exits.
-	// 	defer db.Close()
-	// }
+	if cfg.Dsn != "" && cfg.StoreFile == "" {
+		db, err := openDB(cfg.Dsn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		// Add pgxpool.Pool to options
+		repoOptions.DB = db
+		repoOptions.Memory = false
+		// Defer a call to db.Close() so that the connection pool is closed before the
+		// main() function exits.
+		defer db.Close()
+	}
 
 	// Initialize a new Storage struct
 	rep, err := repo.NewRepo(repoOptions)
