@@ -54,6 +54,11 @@ func NewServerConfig() (*ServerEnvConfig, error) {
 
 	flag.Parse()
 
+	log.Println("-------------envCfg-----------------")
+	log.Printf("%+v", envCfg)
+	log.Println("-------------cfg-----------------")
+	log.Printf("%+v", cfg)
+
 	if envCfg.Address == "" {
 		envCfg.Address = addr.String()
 	}
