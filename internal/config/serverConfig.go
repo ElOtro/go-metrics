@@ -81,6 +81,7 @@ func NewServerConfig() (*ServerEnvConfig, error) {
 
 	if envCfg.Dsn != "" {
 		envCfg.Restore = false
+		envCfg.StoreFile = ""
 	}
 
 	return envCfg, nil
