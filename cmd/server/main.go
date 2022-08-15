@@ -12,6 +12,9 @@ import (
 	"github.com/ElOtro/go-metrics/internal/handlers"
 	"github.com/ElOtro/go-metrics/internal/repo"
 	"github.com/ElOtro/go-metrics/internal/service"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -35,12 +38,27 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		// Add pgxpool.Pool to options
-		repoOptions.DB = db
-		repoOptions.Memory = false
+
 		// Defer a call to db.Close() so that the connection pool is closed before the
 		// main() function exits.
 		defer db.Close()
+		// Add pgxpool.Pool to options
+		repoOptions.DB = db
+		repoOptions.Memory = false
+
+		// Apply migration from file driver
+		m, err := migrate.New("file://internal/migrations", cfg.Dsn)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Check if migration has been applied
+		if _, _, err := m.Version(); err != nil {
+			if err := m.Up(); err != nil {
+				log.Fatal(err)
+			}
+		}
+
 	}
 
 	// Initialize a new Storage struct
