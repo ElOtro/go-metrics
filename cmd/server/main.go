@@ -28,9 +28,10 @@ func main() {
 	// set default repository in memory
 	repoOptions := &repo.Options{Memory: true}
 	// Call the openDB() helper function (see below) to create the connection pool,
-	// passing in the config struct. If this returns an error, we log it and exit the
+	// passing in the Dsn. If this returns an error, we log it and exit the
 	// application immediately.
-	if cfg.StoreFile == "" {
+	fmt.Println(cfg.StoreFile == "")
+	if !cfg.Restore {
 		db, err := openDB(cfg.Dsn)
 		if err != nil {
 			log.Fatal(err)
