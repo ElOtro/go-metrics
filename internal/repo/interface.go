@@ -26,10 +26,6 @@ type Getter interface {
 }
 
 func NewRepo(opts *Options) (Getter, error) {
-	if !opts.Memory {
-		return storage.NewPgStorage(opts.DB), nil
-	}
-
 	switch opts.Memory {
 	case true:
 		return storage.NewMemStorage(), nil
