@@ -19,7 +19,7 @@ type servConfig struct {
 type ServerEnvConfig struct {
 	Address       string        `env:"ADDRESS"`
 	StoreInterval time.Duration `env:"STORE_INTERVAL"`
-	StoreFile     string        `env:"STORE_FILE"`
+	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
 	Restore       bool          `env:"RESTORE"`
 	Key           string        `env:"KEY"`
 	Dsn           string        `env:"DATABASE_DSN"` // PostgreSQL DSN
@@ -67,9 +67,9 @@ func NewServerConfig() (*ServerEnvConfig, error) {
 		envCfg.StoreInterval = cfg.storeInterval
 	}
 
-	if envCfg.StoreFile == "" {
-		envCfg.StoreFile = cfg.storeFile
-	}
+	// if envCfg.StoreFile == "" {
+	// 	envCfg.StoreFile = cfg.storeFile
+	// }
 
 	if envCfg.Key == "" {
 		envCfg.Key = cfg.key
