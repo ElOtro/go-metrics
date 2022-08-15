@@ -30,7 +30,7 @@ func main() {
 	// Call the openDB() helper function (see below) to create the connection pool,
 	// passing in the Dsn. If this returns an error, we log it and exit the
 	// application immediately.
-	if !cfg.Restore {
+	if cfg.StoreFile == "" {
 		db, err := openDB(cfg.Dsn)
 		if err != nil {
 			log.Fatal(err)
