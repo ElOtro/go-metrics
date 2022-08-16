@@ -45,7 +45,7 @@ func TestHandlers_GetAllMetricsHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			//  если в процессе теста вызываается сервис мокаем
 			if tt.want.wantCallService {
-				tt.fields.repo.On("GetAll").Return(make(map[string]float64), make(map[string]int64))
+				tt.fields.repo.On("List").Return(nil)
 			}
 
 			h := &Handlers{
@@ -58,7 +58,7 @@ func TestHandlers_GetAllMetricsHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			// определяем хендлер
-			hh := http.HandlerFunc(h.GetAllMetricsHandler)
+			hh := http.HandlerFunc(h.List)
 			hh.ServeHTTP(w, request)
 			res := w.Result()
 			// получаем и проверяем тело запроса

@@ -16,8 +16,8 @@ var ErrEmptyOptions = errors.New("empty options")
 var ErrInvalidOptions = errors.New("invalid options")
 
 type Getter interface {
-	GetAll() (map[string]float64, map[string]int64)
-	Get(t, n string) (string, error)
+	List() ([]*storage.Metrics, error)
+	Get(t, n string) (*storage.Metrics, error)
 	Set(t, n, v string) error
 	GetMetricsByID(id, mtype string) (*storage.Metrics, error)
 	SetMetrics(*storage.Metrics) error
@@ -26,6 +26,7 @@ type Getter interface {
 }
 
 func NewRepo(opts *Options) (Getter, error) {
+	// return storage.NewMemStorage(), nil
 	switch opts.Memory {
 	case true:
 		return storage.NewMemStorage(), nil

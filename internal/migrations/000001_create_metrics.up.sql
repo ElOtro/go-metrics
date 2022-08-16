@@ -3,8 +3,8 @@ CREATE TABLE metrics (
   id BIGSERIAL PRIMARY KEY,
   name text NOT NULL,
   type text NOT NULL,
-  delta double precision DEFAULT 0.0000,
-  value bigint DEFAULT 0,
+  value double precision,
+  delta bigint,
   hash text
 );
 CREATE INDEX metrics_name_index ON metrics USING btree (name);

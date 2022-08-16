@@ -13,14 +13,16 @@ type Repo struct {
 }
 
 // Get provides a mock function with given fields: t, n
-func (_m *Repo) Get(t string, n string) (string, error) {
+func (_m *Repo) Get(t string, n string) (*storage.Metrics, error) {
 	ret := _m.Called(t, n)
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+	var r0 *storage.Metrics
+	if rf, ok := ret.Get(0).(func(string, string) *storage.Metrics); ok {
 		r0 = rf(t, n)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*storage.Metrics)
+		}
 	}
 
 	var r1 error
@@ -28,31 +30,6 @@ func (_m *Repo) Get(t string, n string) (string, error) {
 		r1 = rf(t, n)
 	} else {
 		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetAll provides a mock function with given fields:
-func (_m *Repo) GetAll() (map[string]float64, map[string]int64) {
-	ret := _m.Called()
-
-	var r0 map[string]float64
-	if rf, ok := ret.Get(0).(func() map[string]float64); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]float64)
-		}
-	}
-
-	var r1 map[string]int64
-	if rf, ok := ret.Get(1).(func() map[string]int64); ok {
-		r1 = rf()
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(map[string]int64)
-		}
 	}
 
 	return r0, r1
@@ -88,6 +65,29 @@ func (_m *Repo) GetMetricsByID(id string, mtype string) (*storage.Metrics, error
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(id, mtype)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// List provides a mock function with given fields:
+func (_m *Repo) List() ([]*storage.Metrics, error) {
+	ret := _m.Called()
+
+	var r0 []*storage.Metrics
+	if rf, ok := ret.Get(0).(func() []*storage.Metrics); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*storage.Metrics)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}

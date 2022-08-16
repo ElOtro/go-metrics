@@ -2,7 +2,6 @@ package storage
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"sync"
@@ -23,35 +22,50 @@ func NewMemStorage() *memStorage {
 	return m
 }
 
-func (m *memStorage) GetAll() (map[string]float64, map[string]int64) {
-	return m.Gauges, m.Counters
+func (m *memStorage) List() ([]*Metrics, error) {
+	metrics := []*Metrics{}
+
+	for k, v := range m.Gauges {
+		metrics = append(metrics, &Metrics{ID: k, MType: Gauge, Value: &v})
+	}
+
+	for k, v := range m.Counters {
+		metrics = append(metrics, &Metrics{ID: k, MType: Counter, Delta: &v})
+	}
+	return metrics, nil
 }
 
-func (m *memStorage) Get(t, n string) (string, error) {
+func (m *memStorage) Get(t, n string) (*Metrics, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
-	value := ""
+	metric := Metrics{}
 
 	if t == Gauge {
 		v, ok := m.Gauges[n]
 		if ok {
-			value = fmt.Sprintf("%.3f", v)
+			metric.ID = n
+			metric.MType = Gauge
+			metric.Value = &v
+			// value = fmt.Sprintf("%.3f", v)
 		}
 	}
 
 	if t == Counter {
 		v, ok := m.Counters[n]
 		if ok {
-			value = fmt.Sprintf("%d", v)
+			metric.ID = n
+			metric.MType = Gauge
+			metric.Delta = &v
+			// value = fmt.Sprintf("%d", v)
 		}
 	}
 
-	if value == "" {
-		return "", ErrNotFound
+	if metric.ID == "" {
+		return nil, ErrNotFound
 	}
 
-	return value, nil
+	return &metric, nil
 }
 
 func (m *memStorage) Set(t, n, v string) error {

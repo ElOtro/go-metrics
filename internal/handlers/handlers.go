@@ -10,20 +10,24 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func (h *Handlers) GetAllMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	gauges, counters := h.repo.GetAll()
+func (h *Handlers) List(w http.ResponseWriter, r *http.Request) {
+	metrics, err := h.repo.List()
 
-	g, _ := json.Marshal(gauges)
-	c, _ := json.Marshal(counters)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	s := fmt.Sprintf("gauges: %s\r\ncounters: %s\r\n", string(g), string(c))
+	m, _ := json.Marshal(metrics)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	_, err := w.Write([]byte(s))
-	if err != nil {
-		log.Fatalln(err)
-	}
+	w.Write(m)
+
 }
 
 func (h *Handlers) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,14 +39,23 @@ func (h *Handlers) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := h.repo.Get(t, n)
+	m, err := h.repo.Get(t, n)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
+	value := ""
+	if m.MType == storage.Gauge {
+		value = fmt.Sprintf("%.3f", *m.Value)
+	}
+
+	if m.MType == storage.Counter {
+		value = fmt.Sprintf("%d", *m.Delta)
+	}
+
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte(s))
+	_, err = w.Write([]byte(value))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -75,12 +88,6 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
-
-	// Check if a hash from a header request is not valid
-	// if h.hm.UseHash && !h.hm.ValidAgentHash(hash, t, n, v) {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	return
-	// }
 
 	err := h.repo.Set(t, n, v)
 	if err != nil {
