@@ -235,7 +235,6 @@ func (pg *pgStorage) SetMetrics(m *Metrics) error {
 			return err
 		}
 	} else {
-		m := Metrics{}
 		// Define the SQL query for inserting a new record
 		query := "INSERT INTO metrics (name, type, delta, value) VALUES ($1, $2, $3, $4) RETURNING delta, value"
 		// Create an args slice containing the values for the placeholder parameters.
