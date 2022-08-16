@@ -170,7 +170,7 @@ func (pg *pgStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 	query := "SELECT name, type, delta, value FROM metrics WHERE type = $1 AND name = $2"
 
 	// Declare a OutputMetric struct to hold the data returned by the query.
-	var metric Metrics
+	metric := Metrics{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 
@@ -179,7 +179,7 @@ func (pg *pgStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 	defer cancel()
 
 	// Execute the query using the QueryRow() method, passing in the provided id value
-	err := pg.db.QueryRow(ctx, query, id, mtype).Scan(
+	err := pg.db.QueryRow(ctx, query, mtype, id).Scan(
 		&metric.ID,
 		&metric.MType,
 		&metric.Delta,
