@@ -101,6 +101,27 @@ func (h *Handlers) CreateMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (h *Handlers) CreateBatchMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	var metrics []*storage.Metrics
+
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&metrics)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = h.repo.SetBatchMetrics(metrics)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 //  New API
 // GetMetricsJSONHandler respond to POST /value/
 func (h *Handlers) GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
@@ -165,7 +186,7 @@ func (h *Handlers) CreateMetricsJSONHandler(w http.ResponseWriter, r *http.Reque
 	// 	w.WriteHeader(http.StatusBadRequest)
 	// 	return
 	// }
-	log.Printf("%+v", input)
+	// log.Printf("%+v", input)
 
 	err = h.repo.SetMetrics(input)
 	if err != nil {

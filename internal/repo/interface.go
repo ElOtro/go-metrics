@@ -21,6 +21,7 @@ type Getter interface {
 	Set(t, n, v string) error
 	GetMetricsByID(id, mtype string) (*storage.Metrics, error)
 	SetMetrics(*storage.Metrics) error
+	SetBatchMetrics([]*storage.Metrics) error
 	RestoreMetrics(filename string) error
 	GetHealth() error
 }

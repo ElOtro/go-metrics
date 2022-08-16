@@ -178,6 +178,11 @@ func (m *memStorage) SetMetrics(ms *Metrics) error {
 	return ErrInvalidPrams
 }
 
+// update/insert bulk Metrics
+func (m *memStorage) SetBatchMetrics([]*Metrics) error {
+	return nil
+}
+
 func (m *memStorage) RestoreMetrics(filename string) error {
 	file, err := ioutil.ReadFile(filename)
 	if err != nil {

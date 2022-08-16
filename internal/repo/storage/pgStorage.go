@@ -250,6 +250,29 @@ func (pg *pgStorage) SetMetrics(m *Metrics) error {
 	return nil
 }
 
+// SetBatchMetrics updates/inserts bulk of Metrics
+func (pg *pgStorage) SetBatchMetrics(metrics []*Metrics) error {
+	// Define the SQL query for inserting a new record
+	query := `INSERT INTO metrics (name, type, delta, value) 
+	          VALUES ($1, $2, $3, $4)`
+
+	batch := &pgx.Batch{}
+	for _, v := range metrics {
+		batch.Queue(query, v.ID, v.MType, v.Delta, v.Value)
+	}
+
+	br := pg.db.SendBatch(context.Background(), batch)
+
+	_, err := br.Exec()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+// RestoreMetrics restores metrics from an json file
 func (pg *pgStorage) RestoreMetrics(filename string) error {
 	file, err := ioutil.ReadFile(filename)
 	if err != nil {

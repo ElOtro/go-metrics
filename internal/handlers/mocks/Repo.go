@@ -123,6 +123,20 @@ func (_m *Repo) Set(t string, n string, v string) error {
 	return r0
 }
 
+// SetBatchMetrics provides a mock function with given fields: _a0
+func (_m *Repo) SetBatchMetrics(_a0 []*storage.Metrics) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]*storage.Metrics) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SetMetrics provides a mock function with given fields: _a0
 func (_m *Repo) SetMetrics(_a0 *storage.Metrics) error {
 	ret := _m.Called(_a0)
