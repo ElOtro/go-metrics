@@ -18,7 +18,7 @@ func (h *Handlers) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m, _ := json.Marshal(metrics)
+	m, err := json.Marshal(metrics)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -44,6 +44,8 @@ func (h *Handlers) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+
+	fmt.Printf("%+v", *m)
 
 	value := ""
 	if m.MType == storage.Gauge {

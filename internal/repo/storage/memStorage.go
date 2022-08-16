@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"strconv"
 	"sync"
@@ -23,6 +24,9 @@ func NewMemStorage() *memStorage {
 }
 
 func (m *memStorage) List() ([]*Metrics, error) {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
 	metrics := []*Metrics{}
 
 	for k, v := range m.Gauges {
@@ -32,6 +36,10 @@ func (m *memStorage) List() ([]*Metrics, error) {
 	for k, v := range m.Counters {
 		metrics = append(metrics, &Metrics{ID: k, MType: Counter, Delta: &v})
 	}
+
+	// for _, v := range metrics {
+	// 	fmt.Printf("%+v", v)
+	// }
 	return metrics, nil
 }
 
@@ -55,7 +63,7 @@ func (m *memStorage) Get(t, n string) (*Metrics, error) {
 		v, ok := m.Counters[n]
 		if ok {
 			metric.ID = n
-			metric.MType = Gauge
+			metric.MType = Counter
 			metric.Delta = &v
 			// value = fmt.Sprintf("%d", v)
 		}
@@ -71,6 +79,8 @@ func (m *memStorage) Get(t, n string) (*Metrics, error) {
 func (m *memStorage) Set(t, n, v string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+
+	fmt.Println(t, n, v)
 
 	if t == Gauge {
 		value, err := strconv.ParseFloat(v, 64)

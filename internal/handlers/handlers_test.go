@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHandlers_GetAllMetricsHandler(t *testing.T) {
+func TestHandlers_ListMetricsHandler(t *testing.T) {
 	type fields struct {
 		r    *chi.Mux
 		repo *mocks.Repo
@@ -44,8 +44,9 @@ func TestHandlers_GetAllMetricsHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			//  если в процессе теста вызываается сервис мокаем
+			metrics := []*storage.Metrics{}
 			if tt.want.wantCallService {
-				tt.fields.repo.On("List").Return(nil)
+				tt.fields.repo.On("List").Return(metrics, nil)
 			}
 
 			h := &Handlers{
@@ -75,8 +76,8 @@ func TestHandlers_GetAllMetricsHandler(t *testing.T) {
 
 			// проверяем что метод у мокового сервиса вызывался
 			if tt.want.wantCallService {
-				tt.fields.repo.AssertCalled(t, "GetAll")
-				tt.fields.repo.AssertNumberOfCalls(t, "GetAll", 1)
+				tt.fields.repo.AssertCalled(t, "List")
+				tt.fields.repo.AssertNumberOfCalls(t, "List", 1)
 			}
 		})
 	}
