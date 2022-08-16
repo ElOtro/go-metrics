@@ -205,7 +205,7 @@ func (pg *pgStorage) SetMetrics(m *Metrics) error {
 	// Define the SQL query for inserting a new record
 	query := `INSERT INTO metrics (name, type, delta, value) 
 	          VALUES ($1, $2, $3, $4)
-			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + excluded.delta, value=$4`
+			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + metrics.delta, value=$4`
 
 	// Create an args slice containing the values for the placeholder parameters.
 	args := []interface{}{m.ID, m.MType, m.Delta, m.Value}
@@ -225,7 +225,7 @@ func (pg *pgStorage) SetBatchMetrics(metrics []*Metrics) error {
 	// Define the SQL query for inserting a new record
 	query := `INSERT INTO metrics (name, type, delta, value) 
 	          VALUES ($1, $2, $3, $4)
-			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + excluded.delta, value=$4`
+			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + metrics.delta, value=$4`
 
 	batch := &pgx.Batch{}
 	for _, v := range metrics {
