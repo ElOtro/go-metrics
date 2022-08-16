@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -107,11 +106,6 @@ func (pg *pgStorage) Get(t, n string) (*Metrics, error) {
 }
 
 func (pg *pgStorage) Set(t, n, v string) error {
-	metric, err := pg.Get(t, n)
-	if err != nil {
-		log.Println(err)
-	}
-
 	var delta *int64
 	var value *float64
 
@@ -119,9 +113,6 @@ func (pg *pgStorage) Set(t, n, v string) error {
 		val, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
 			return err
-		}
-		if metric != nil {
-			val = val + int64(*metric.Delta)
 		}
 		delta = &val
 	}
@@ -134,30 +125,21 @@ func (pg *pgStorage) Set(t, n, v string) error {
 		value = &val
 	}
 
-	if metric != nil {
-		query := "UPDATE metrics SET delta = $1, value = $2 WHERE name = $3 AND type = $4 RETURNING delta, value"
-		fmt.Println(query)
-		// Create an args slice containing the values for the placeholder parameters.
-		args := []interface{}{delta, value, n, t}
-		// Use the QueryRow() method to execute the query, passing in the args slice as a
-		// variadic parameter and scanning the new version value into the metric struct.
-		err := pg.db.QueryRow(context.Background(), query, args...).Scan(&metric.Delta, &metric.Value)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-	} else {
-		m := Metrics{}
-		// Define the SQL query for inserting a new record
-		query := "INSERT INTO metrics (name, type, delta, value) VALUES ($1, $2, $3, $4) RETURNING delta, value"
-		// Create an args slice containing the values for the placeholder parameters.
-		args := []interface{}{n, t, delta, value}
-		// Use the QueryRow() method to execute the SQL query on our connection pool
-		err := pg.db.QueryRow(context.Background(), query, args...).Scan(&m.Delta, &m.Value)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
+	metric := Metrics{ID: n, MType: t, Delta: delta, Value: value}
+
+	// Define the SQL query for inserting a new record
+	query := `INSERT INTO metrics (name, type, delta, value) 
+	          VALUES ($1, $2, $3, $4)
+			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + COALESCE(metrics.delta, 0), value=$4
+			  RETURNING delta, value`
+	// Create an args slice containing the values for the placeholder parameters.
+	args := []interface{}{metric.ID, metric.MType, metric.Delta, metric.Value}
+	// Use the QueryRow() method to execute the query, passing in the args slice as a
+	// variadic parameter and scanning the new version value into the metric struct.
+	err := pg.db.QueryRow(context.Background(), query, args...).Scan(&metric.Delta, &metric.Value)
+	if err != nil {
+		log.Println(err)
+		return err
 	}
 
 	return nil
@@ -169,7 +151,7 @@ func (pg *pgStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 	// Define the SQL query for retrieving data.
 	query := "SELECT name, type, delta, value FROM metrics WHERE type = $1 AND name = $2"
 
-	// Declare a OutputMetric struct to hold the data returned by the query.
+	// Declare a Metric struct to hold the data returned by the query.
 	metric := Metrics{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -205,7 +187,8 @@ func (pg *pgStorage) SetMetrics(m *Metrics) error {
 	// Define the SQL query for inserting a new record
 	query := `INSERT INTO metrics (name, type, delta, value) 
 	          VALUES ($1, $2, $3, $4)
-			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + COALESCE(metrics.delta, 0), value=$4`
+			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + COALESCE(metrics.delta, 0), value=$4
+			  RETURNING delta, value`
 
 	// Create an args slice containing the values for the placeholder parameters.
 	args := []interface{}{m.ID, m.MType, m.Delta, m.Value}
