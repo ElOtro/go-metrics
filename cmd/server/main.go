@@ -15,7 +15,9 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgx/v4/log/zerologadapter"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/rs/zerolog"
 )
 
 func main() {
@@ -109,12 +111,15 @@ func main() {
 
 // The openDB() function returns a sql.DB connection pool.
 func openDB(dsn string) (*pgxpool.Pool, error) {
+	logger := zerologadapter.NewLogger(zerolog.New(os.Stderr).With().Timestamp().Logger())
 
 	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
+
+	poolConfig.ConnConfig.Logger = logger
 
 	dbpool, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
 	if err != nil {

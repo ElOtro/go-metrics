@@ -202,49 +202,19 @@ func (pg *pgStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 }
 
 func (pg *pgStorage) SetMetrics(m *Metrics) error {
-	metric, err := pg.Get(m.MType, m.ID)
+	// Define the SQL query for inserting a new record
+	query := `INSERT INTO metrics (name, type, delta, value) 
+	          VALUES ($1, $2, $3, $4)
+			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + excluded.delta, value=$4`
+
+	// Create an args slice containing the values for the placeholder parameters.
+	args := []interface{}{m.ID, m.MType, m.Delta, m.Value}
+	// Use the QueryRow() method to execute the query, passing in the args slice as a
+	// variadic parameter and scanning the new version value into the metric struct.
+	err := pg.db.QueryRow(context.Background(), query, args...).Scan(&m.Delta, &m.Value)
 	if err != nil {
 		log.Println(err)
-	}
-
-	var delta *int64
-	var value *float64
-
-	if m.MType == Counter {
-		val := *m.Delta
-		if metric != nil {
-			val = val + int64(*metric.Delta)
-		}
-		delta = &val
-	}
-
-	if m.MType == Gauge {
-		value = m.Value
-	}
-
-	if metric != nil {
-		query := "UPDATE metrics SET delta = $1, value = $2 WHERE name = $3 AND type = $4 RETURNING delta, value"
-		fmt.Println(query)
-		// Create an args slice containing the values for the placeholder parameters.
-		args := []interface{}{delta, value, m.ID, m.MType}
-		// Use the QueryRow() method to execute the query, passing in the args slice as a
-		// variadic parameter and scanning the new version value into the metric struct.
-		err := pg.db.QueryRow(context.Background(), query, args...).Scan(&metric.Delta, &metric.Value)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-	} else {
-		// Define the SQL query for inserting a new record
-		query := "INSERT INTO metrics (name, type, delta, value) VALUES ($1, $2, $3, $4) RETURNING delta, value"
-		// Create an args slice containing the values for the placeholder parameters.
-		args := []interface{}{m.ID, m.MType, delta, value}
-		// Use the QueryRow() method to execute the SQL query on our connection pool
-		err := pg.db.QueryRow(context.Background(), query, args...).Scan(&m.Delta, &m.Value)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
+		return err
 	}
 
 	return nil
@@ -254,7 +224,8 @@ func (pg *pgStorage) SetMetrics(m *Metrics) error {
 func (pg *pgStorage) SetBatchMetrics(metrics []*Metrics) error {
 	// Define the SQL query for inserting a new record
 	query := `INSERT INTO metrics (name, type, delta, value) 
-	          VALUES ($1, $2, $3, $4)`
+	          VALUES ($1, $2, $3, $4)
+			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + excluded.delta, value=$4`
 
 	batch := &pgx.Batch{}
 	for _, v := range metrics {
@@ -289,7 +260,7 @@ func (pg *pgStorage) RestoreMetrics(filename string) error {
 		// Define the SQL query for inserting a new record
 		query := `INSERT INTO metrics (name, type, delta, value) 
 		          VALUES ($1, $2, $3, $4) 
-				  ON CONFLICT (name) DO UPDATE SET delta=$3 value=$4
+				  ON CONFLICT (name) DO UPDATE SET delta=$3, value=$4
 				  RETURNING delta, value`
 		// Create an args slice containing the values for the placeholder parameters.
 		args := []interface{}{metric.ID, metric.MType, metric.Delta, metric.Value}
