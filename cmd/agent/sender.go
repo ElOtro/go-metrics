@@ -18,30 +18,30 @@ func (app *application) postMetrics() {
 	var client = app.client
 	var interval = cfg.ReportInterval
 	var hm = service.NewHashMetric(cfg.Key)
-	var batchUrl = fmt.Sprintf("http://%s/updates/", cfg.Address)
+	// var batchURL = fmt.Sprintf("http://%s/updates/", cfg.Address)
 
 	for {
 		<-time.After(interval)
 
-		if hm.UseHash {
-			// sending gauge metrics
-			err := postGauges(client, app.stats.Gauges, cfg.Address, hm)
-			if err != nil {
-				log.Println(err)
-			}
-			// sending counter metrics
-			err = postCounters(client, app.stats.Counters, cfg.Address, hm)
-			if err != nil {
-				log.Println(err)
-			}
-		} else {
-			// sending counter metrics
-			err := postBatch(client, app.stats.Gauges, app.stats.Counters, batchUrl)
-			if err != nil {
-				log.Println(err)
-			}
-
+		// if hm.UseHash {
+		// sending gauge metrics
+		err := postGauges(client, app.stats.Gauges, cfg.Address, hm)
+		if err != nil {
+			log.Println(err)
 		}
+		// sending counter metrics
+		err = postCounters(client, app.stats.Counters, cfg.Address, hm)
+		if err != nil {
+			log.Println(err)
+		}
+		// } else {
+		// sending counter metrics
+		// err := postBatch(client, app.stats.Gauges, app.stats.Counters, batchURL)
+		// if err != nil {
+		// 	log.Println(err)
+		// }
+
+		// }
 
 	}
 
