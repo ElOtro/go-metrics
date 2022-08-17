@@ -30,16 +30,15 @@ func (m *memStorage) List() ([]*Metrics, error) {
 	metrics := []*Metrics{}
 
 	for k, v := range m.Gauges {
-		metrics = append(metrics, &Metrics{ID: k, MType: Gauge, Value: &v})
+		value := v
+		metrics = append(metrics, &Metrics{ID: k, MType: Gauge, Value: &value})
 	}
 
 	for k, v := range m.Counters {
-		metrics = append(metrics, &Metrics{ID: k, MType: Counter, Delta: &v})
+		value := v
+		metrics = append(metrics, &Metrics{ID: k, MType: Counter, Delta: &value})
 	}
 
-	// for _, v := range metrics {
-	// 	fmt.Printf("%+v", v)
-	// }
 	return metrics, nil
 }
 

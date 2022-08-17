@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,19 +18,29 @@ func (app *application) postMetrics() {
 	var client = app.client
 	var interval = cfg.ReportInterval
 	var hm = service.NewHashMetric(cfg.Key)
+	var batchUrl = fmt.Sprintf("http://%s/updates/", cfg.Address)
 
 	for {
 		<-time.After(interval)
 
-		// sending gauge metrics
-		err := postGauges(client, app.stats.Gauges, cfg.Address, hm)
-		if err != nil {
-			log.Println(err)
-		}
-		// sending counter metrics
-		err = postCounters(client, app.stats.Counters, cfg.Address, hm)
-		if err != nil {
-			log.Println(err)
+		if hm.UseHash {
+			// sending gauge metrics
+			err := postGauges(client, app.stats.Gauges, cfg.Address, hm)
+			if err != nil {
+				log.Println(err)
+			}
+			// sending counter metrics
+			err = postCounters(client, app.stats.Counters, cfg.Address, hm)
+			if err != nil {
+				log.Println(err)
+			}
+		} else {
+			// sending counter metrics
+			err := postBatch(client, app.stats.Gauges, app.stats.Counters, batchUrl)
+			if err != nil {
+				log.Println(err)
+			}
+
 		}
 
 	}
@@ -98,4 +110,51 @@ func postCounters(client http.Client, counters map[string]int64, address string,
 
 	return nil
 
+}
+
+func postBatch(client http.Client, gauges map[string]float64, counters map[string]int64, url string) error {
+	metrics := []storage.Metrics{}
+
+	for k, v := range gauges {
+		value := v
+		m := &storage.Metrics{
+			ID:    k,
+			MType: storage.Gauge,
+			Value: &value,
+		}
+
+		metrics = append(metrics, *m)
+	}
+
+	for k, v := range counters {
+		value := v
+		m := &storage.Metrics{
+			ID:    k,
+			MType: storage.Counter,
+			Delta: &value,
+		}
+
+		metrics = append(metrics, *m)
+	}
+
+	js, err := json.Marshal(metrics)
+	if err != nil {
+		return err
+	}
+
+	body := bytes.NewReader(js)
+	req, err := http.NewRequest(http.MethodPost, url, body)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Content-Type", "text/plain")
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	resp.Body.Close()
+
+	return nil
 }

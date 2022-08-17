@@ -26,8 +26,10 @@ func (h *Handlers) List(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write(m)
-
+	_, err = w.Write(m)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func (h *Handlers) GetMetricHandler(w http.ResponseWriter, r *http.Request) {

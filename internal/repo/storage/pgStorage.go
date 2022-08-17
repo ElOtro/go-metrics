@@ -72,8 +72,7 @@ func (pg *pgStorage) List() ([]*Metrics, error) {
 func (pg *pgStorage) Get(t, n string) (*Metrics, error) {
 	// Define the SQL query for retrieving data.
 	query := "SELECT name, type, delta, value FROM metrics WHERE type = $1 AND name = $2"
-
-	// Declare a OutputMetric struct to hold the data returned by the query.
+	// Declare a Metrics struct to hold the data returned by the query.
 	var metric Metrics
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -128,10 +127,7 @@ func (pg *pgStorage) Set(t, n, v string) error {
 	metric := Metrics{ID: n, MType: t, Delta: delta, Value: value}
 
 	// Define the SQL query for inserting a new record
-	query := `INSERT INTO metrics (name, type, delta, value) 
-	          VALUES ($1, $2, $3, $4)
-			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + COALESCE(metrics.delta, 0), value=$4
-			  RETURNING delta, value`
+	query := setMetricQuery()
 	// Create an args slice containing the values for the placeholder parameters.
 	args := []interface{}{metric.ID, metric.MType, metric.Delta, metric.Value}
 	// Use the QueryRow() method to execute the query, passing in the args slice as a
@@ -150,7 +146,6 @@ func (pg *pgStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 
 	// Define the SQL query for retrieving data.
 	query := "SELECT name, type, delta, value FROM metrics WHERE type = $1 AND name = $2"
-
 	// Declare a Metric struct to hold the data returned by the query.
 	metric := Metrics{}
 
@@ -185,11 +180,7 @@ func (pg *pgStorage) GetMetricsByID(id, mtype string) (*Metrics, error) {
 
 func (pg *pgStorage) SetMetrics(m *Metrics) error {
 	// Define the SQL query for inserting a new record
-	query := `INSERT INTO metrics (name, type, delta, value) 
-	          VALUES ($1, $2, $3, $4)
-			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + COALESCE(metrics.delta, 0), value=$4
-			  RETURNING delta, value`
-
+	query := setMetricQuery()
 	// Create an args slice containing the values for the placeholder parameters.
 	args := []interface{}{m.ID, m.MType, m.Delta, m.Value}
 	// Use the QueryRow() method to execute the query, passing in the args slice as a
@@ -223,6 +214,12 @@ func (pg *pgStorage) SetBatchMetrics(metrics []*Metrics) error {
 		return err
 	}
 
+	err = br.Close()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
 	return nil
 }
 
@@ -243,7 +240,7 @@ func (pg *pgStorage) RestoreMetrics(filename string) error {
 		// Define the SQL query for inserting a new record
 		query := `INSERT INTO metrics (name, type, delta, value) 
 		          VALUES ($1, $2, $3, $4) 
-				  ON CONFLICT (name) DO UPDATE SET delta=$3, value=$4
+				  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3, value=$4
 				  RETURNING delta, value`
 		// Create an args slice containing the values for the placeholder parameters.
 		args := []interface{}{metric.ID, metric.MType, metric.Delta, metric.Value}
@@ -269,4 +266,14 @@ func (pg *pgStorage) GetHealth() error {
 	}
 
 	return nil
+}
+
+func setMetricQuery() string {
+	// Define the SQL query for inserting a new record
+	query := `INSERT INTO metrics (name, type, delta, value) 
+	          VALUES ($1, $2, $3, $4)
+			  ON CONFLICT (name) DO UPDATE SET type=$2, delta=$3 + COALESCE(metrics.delta, 0), value=$4
+			  RETURNING delta, value`
+
+	return query
 }
