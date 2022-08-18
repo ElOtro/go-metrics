@@ -115,8 +115,7 @@ func openDB(dsn string) (*pgxpool.Pool, error) {
 
 	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	poolConfig.ConnConfig.Logger = logger
