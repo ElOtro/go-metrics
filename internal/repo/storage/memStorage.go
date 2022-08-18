@@ -2,26 +2,10 @@ package storage
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"strconv"
 	"sync"
-)
-
-var ErrInvalidPrams = errors.New("invalid params")
-var ErrNotFound = errors.New("not found")
-
-type Metrics struct {
-	ID    string   `json:"id"`              // имя метрики
-	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
-	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
-	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
-}
-
-const (
-	Counter = "counter"
-	Gauge   = "gauge"
 )
 
 type memStorage struct {
@@ -30,7 +14,7 @@ type memStorage struct {
 	Counters map[string]int64
 }
 
-func New() *memStorage {
+func NewMemStorage() *memStorage {
 	m := &memStorage{
 		mutex:    sync.RWMutex{},
 		Gauges:   make(map[string]float64),
@@ -39,40 +23,63 @@ func New() *memStorage {
 	return m
 }
 
-func (m *memStorage) GetAll() (map[string]float64, map[string]int64) {
-	return m.Gauges, m.Counters
-}
-
-func (m *memStorage) Get(t, n string) (string, error) {
+func (m *memStorage) List() ([]*Metrics, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
-	value := ""
+	metrics := []*Metrics{}
+
+	for k, v := range m.Gauges {
+		value := v
+		metrics = append(metrics, &Metrics{ID: k, MType: Gauge, Value: &value})
+	}
+
+	for k, v := range m.Counters {
+		value := v
+		metrics = append(metrics, &Metrics{ID: k, MType: Counter, Delta: &value})
+	}
+
+	return metrics, nil
+}
+
+func (m *memStorage) Get(t, n string) (*Metrics, error) {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
+	metric := Metrics{}
 
 	if t == Gauge {
 		v, ok := m.Gauges[n]
 		if ok {
-			value = fmt.Sprintf("%.3f", v)
+			metric.ID = n
+			metric.MType = Gauge
+			metric.Value = &v
+			// value = fmt.Sprintf("%.3f", v)
 		}
 	}
 
 	if t == Counter {
 		v, ok := m.Counters[n]
 		if ok {
-			value = fmt.Sprintf("%d", v)
+			metric.ID = n
+			metric.MType = Counter
+			metric.Delta = &v
+			// value = fmt.Sprintf("%d", v)
 		}
 	}
 
-	if value == "" {
-		return "", ErrNotFound
+	if metric.ID == "" {
+		return nil, ErrNotFound
 	}
 
-	return value, nil
+	return &metric, nil
 }
 
 func (m *memStorage) Set(t, n, v string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+
+	fmt.Println(t, n, v)
 
 	if t == Gauge {
 		value, err := strconv.ParseFloat(v, 64)
@@ -170,6 +177,11 @@ func (m *memStorage) SetMetrics(ms *Metrics) error {
 	return ErrInvalidPrams
 }
 
+// update/insert bulk Metrics
+func (m *memStorage) SetBatchMetrics([]*Metrics) error {
+	return nil
+}
+
 func (m *memStorage) RestoreMetrics(filename string) error {
 	file, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -199,5 +211,10 @@ func (m *memStorage) RestoreMetrics(filename string) error {
 		}
 	}
 
+	return nil
+}
+
+func (m *memStorage) GetHealth() error {
+	// nothing to return
 	return nil
 }

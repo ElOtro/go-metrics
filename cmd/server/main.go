@@ -1,15 +1,23 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/ElOtro/go-metrics/internal/config"
 	"github.com/ElOtro/go-metrics/internal/handlers"
 	"github.com/ElOtro/go-metrics/internal/repo"
 	"github.com/ElOtro/go-metrics/internal/service"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgx/v4/log/zerologadapter"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/rs/zerolog"
 )
 
 func main() {
@@ -20,10 +28,43 @@ func main() {
 	}
 
 	// Print cfg on start
-	log.Print(cfg)
+	log.Printf("%+v", cfg)
+
+	// set default repository in memory
+	repoOptions := &repo.Options{Memory: true}
+	// Call the openDB() helper function (see below) to create the connection pool,
+	// passing in the Dsn. If this returns an error, we log it and exit the
+	// application immediately.
+	if cfg.Dsn != "" {
+		db, err := openDB(cfg.Dsn)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Defer a call to db.Close() so that the connection pool is closed before the
+		// main() function exits.
+		defer db.Close()
+		// Add pgxpool.Pool to options
+		repoOptions.DB = db
+		repoOptions.Memory = false
+
+		// Apply migration from file driver
+		m, err := migrate.New("file://internal/migrations", cfg.Dsn)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Check if migration has been applied
+		if _, _, err := m.Version(); err != nil {
+			if err := m.Up(); err != nil {
+				log.Fatal(err)
+			}
+		}
+
+	}
 
 	// Initialize a new Storage struct
-	rep, err := repo.NewMemStorage()
+	rep, err := repo.NewRepo(repoOptions)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -36,8 +77,11 @@ func main() {
 		}
 	}
 
+	// HashMetric service
+	hm := service.NewHashMetric(cfg.Key)
+
 	// Initialize a new Handlers struct
-	h := handlers.NewHandlers(rep)
+	h := handlers.NewHandlers(rep, *hm)
 
 	producer, err := service.NewProducer(cfg.StoreInterval, cfg.StoreFile, rep)
 	if err != nil {
@@ -63,4 +107,37 @@ func main() {
 		log.Fatalln(err)
 	}
 
+}
+
+// The openDB() function returns a sql.DB connection pool.
+func openDB(dsn string) (*pgxpool.Pool, error) {
+	logger := zerologadapter.NewLogger(zerolog.New(os.Stderr).With().Timestamp().Logger())
+
+	poolConfig, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	poolConfig.ConnConfig.Logger = logger
+
+	dbpool, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a context with a 5-second timeout deadline.
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Use Ping() to establish a new connection to the database, passing in the
+	// context we created above as a parameter. If the connection couldn't be
+	// established successfully within the 5 second deadline, then this will return an
+	// error.
+	err = dbpool.Ping(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the pgxpool.Pool connection pool.
+	return dbpool, nil
 }
