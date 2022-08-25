@@ -5,6 +5,9 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
 // Keeps all types metrics
@@ -83,6 +86,23 @@ func updateStats(s *Stats, rtm *runtime.MemStats) {
 
 	rand.Seed(time.Now().UnixNano())
 	s.Gauges["RandomValue"] = rand.Float64()
+
+	cpuUtilization := 0.0
+	freeMemory := 0.0
+
+	v, err := mem.VirtualMemory()
+	if err == nil {
+		freeMemory = float64(v.Free)
+	}
+
+	p, err := cpu.Percent(0, false)
+	if err == nil {
+		cpuUtilization = float64(p[0])
+	}
+
+	s.Gauges["TotalMemory"] = float64(v.Total)
+	s.Gauges["FreeMemory"] = freeMemory
+	s.Gauges["CPUutilization1"] = cpuUtilization
 
 	s.Counters["PollCount"] = s.Counters["PollCount"] + 1
 }
